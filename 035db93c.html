@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Math Behind Dobble</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #161a22;
+    --panel-2: #1d222d;
+    --ink: #e7ecf3;
+    --ink-dim: #9aa3b2;
+    --accent: #ffd166;
+    --accent-2: #06d6a0;
+    --accent-3: #ef476f;
+    --accent-4: #4cc9f0;
+    --line: #262c38;
+    --good: #06d6a0;
+    --bad: #ef476f;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+  }
+  h1 {
+    font-size: 44px;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+    background: linear-gradient(120deg, #ffd166, #ef476f 60%, #4cc9f0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  h2 {
+    font-size: 26px;
+    letter-spacing: -0.01em;
+    margin: 56px 0 12px;
+    color: var(--ink);
+  }
+  h3 {
+    font-size: 18px;
+    margin: 24px 0 8px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .lede {
+    color: var(--ink-dim);
+    font-size: 18px;
+    margin-bottom: 32px;
+  }
+  p { margin: 12px 0; }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px;
+    margin: 18px 0;
+  }
+  .panel.tight { padding: 16px; }
+  .row {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    align-items: center;
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 13px;
+    color: var(--ink-dim);
+  }
+  .pill b { color: var(--ink); }
+  .formula {
+    font-family: "SF Mono", "JetBrains Mono", Consolas, monospace;
+    background: var(--panel-2);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin: 14px 0;
+    font-size: 16px;
+    color: #ffe9a3;
+    overflow-x: auto;
+  }
+  .key {
+    background: var(--panel-2);
+    border: 1px dashed var(--accent-2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--ink);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 15px;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  th { color: var(--ink-dim); font-weight: 500; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .highlight-row td { background: rgba(255, 209, 102, 0.08); color: var(--accent); }
+
+  /* Card visualization */
+  .deck {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 14px;
+    margin: 18px 0;
+  }
+  .card {
+    background: radial-gradient(circle at top left, #20283a, #11151d);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    aspect-ratio: 1;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    cursor: pointer;
+    transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+    user-select: none;
+    position: relative;
+  }
+  .card:hover { transform: translateY(-2px); border-color: var(--accent-4); }
+  .card.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(255, 209, 102, 0.25);
+  }
+  .card .label {
+    position: absolute; top: 6px; left: 10px;
+    font-size: 11px; color: var(--ink-dim);
+    font-family: "SF Mono", monospace;
+  }
+  .sym {
+    font-size: 20px;
+    font-weight: 700;
+    width: 38px; height: 38px;
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    border-radius: 50%;
+    color: #11151d;
+    font-family: "SF Mono", monospace;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .sym.match {
+    transform: scale(1.25);
+    box-shadow: 0 0 0 3px var(--accent), 0 0 20px rgba(255,209,102,0.7);
+    animation: pop 0.5s ease;
+  }
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.4); }
+    100% { transform: scale(1.25); }
+  }
+
+  /* Fano plane SVG */
+  .fano-wrap {
+    display: flex; justify-content: center;
+    margin: 18px 0;
+  }
+  .fano line, .fano circle.bigcircle {
+    stroke: var(--accent-4);
+    stroke-width: 2;
+    fill: none;
+    opacity: 0.55;
+  }
+  .fano circle.point {
+    fill: var(--accent);
+    stroke: #11151d;
+    stroke-width: 2;
+    cursor: pointer;
+  }
+  .fano text {
+    fill: #11151d;
+    font-family: "SF Mono", monospace;
+    font-weight: 700;
+    font-size: 14px;
+    pointer-events: none;
+  }
+  .fano line.lit, .fano circle.bigcircle.lit {
+    stroke: var(--accent-3);
+    stroke-width: 4;
+    opacity: 1;
+  }
+
+  /* Buttons */
+  button {
+    background: var(--panel-2);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  button.primary {
+    background: var(--accent);
+    color: #11151d;
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  button.primary:hover { background: #ffe19a; color: #11151d; }
+
+  /* Result message */
+  .result {
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 15px;
+    display: none;
+  }
+  .result.show { display: block; }
+  .result.good { background: rgba(6,214,160,0.12); color: var(--good); border: 1px solid rgba(6,214,160,0.35); }
+  .result.bad { background: rgba(239,71,105,0.12); color: var(--bad); border: 1px solid rgba(239,71,105,0.35); }
+
+  /* Counting diagram */
+  .bucket-diagram {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin: 14px 0;
+  }
+  .bucket {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+  }
+  .bucket .head {
+    font-family: "SF Mono", monospace;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .bucket .count {
+    font-size: 12px; color: var(--ink-dim);
+  }
+
+  /* misc */
+  .footnote { color: var(--ink-dim); font-size: 13px; margin-top: 6px; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  code.inline {
+    background: var(--panel-2);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: "SF Mono", monospace;
+    font-size: 14px;
+    color: var(--accent-2);
+  }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 700px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    h1 { font-size: 32px; }
+  }
+  .step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent); color: #11151d;
+    font-weight: 700; font-size: 14px;
+    margin-right: 10px;
+  }
+  hr {
+    border: none; border-top: 1px solid var(--line);
+    margin: 40px 0;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>The Math Behind Dobble</h1>
+  <p class="lede">
+    Why does each card have <b>8 symbols</b>? Why are there <b>57 different symbols</b>? And why do
+    every two cards share <i>exactly one</i> — never zero, never two? It's not a clever printing trick.
+    It's a 150-year-old piece of geometry.
+  </p>
+
+  <div class="panel">
+    <div class="row">
+      <span class="pill">🃏 <b>55</b> cards</span>
+      <span class="pill">🎨 <b>57</b> distinct symbols</span>
+      <span class="pill">🔢 <b>8</b> symbols per card</span>
+      <span class="pill">🤝 Any 2 cards share <b>exactly 1</b></span>
+    </div>
+  </div>
+
+  <h2>The puzzle, in one question</h2>
+  <p>
+    You want to design a deck of cards where:
+  </p>
+  <ul>
+    <li>every card has the same number of symbols, call it <code class="inline">k</code></li>
+    <li>any two cards share <b>exactly one</b> symbol</li>
+  </ul>
+  <p>
+    Given <code class="inline">k</code>, what's the most cards you can possibly make?
+    And how many distinct symbols do you need? Let's build up to it.
+  </p>
+
+  <hr/>
+
+  <h2><span class="step-num">1</span>Try the tiny version (k = 3)</h2>
+  <p>
+    With 3 symbols per card, can you build a deck? Click cards to select two and we'll show their shared symbol.
+    Try to find a pair that shares zero or two — you can't.
+  </p>
+
+  <div class="panel">
+    <div class="controls">
+      <button id="k3-clear">Clear selection</button>
+      <span class="pill" id="k3-info">Selected: <b style="margin-left:6px" id="k3-count">0</b>/2</span>
+    </div>
+    <div class="deck" id="k3-deck"></div>
+    <div class="result" id="k3-result"></div>
+    <p class="footnote">
+      Symbols are colored letters A–G. There are exactly <b>7 cards</b> using <b>7 symbols</b>.
+      Try to invent an 8th card using only A–G — every option will either repeat an existing card or share 2 symbols with one.
+    </p>
+  </div>
+
+  <h3>The geometric picture: the Fano plane</h3>
+  <p>
+    These 7 cards correspond to the 7 lines in the famous <b>Fano plane</b>. Each <i>point</i> is a symbol,
+    each <i>line</i> (including the circle) is a card. Hover over a card above to see its line light up.
+  </p>
+
+  <div class="panel">
+    <div class="fano-wrap">
+      <svg class="fano" id="fano" width="360" height="320" viewBox="0 0 360 320"></svg>
+    </div>
+    <p class="footnote" style="text-align:center">
+      Any two lines in this picture cross at exactly one point. That's the Dobble property — geometrically.
+    </p>
+  </div>
+
+  <hr/>
+
+  <h2><span class="step-num">2</span>Where does the formula come from?</h2>
+  <p>
+    Pick <i>any single card</i> C from the deck. Say it has the <code class="inline">k</code> symbols
+    <code class="inline">s₁, s₂, …, sₖ</code>. Now look at every <i>other</i> card.
+  </p>
+  <p>
+    Each one must share exactly one symbol with C. So we can drop every other card into one of <code class="inline">k</code> buckets,
+    based on which of C's symbols it shares:
+  </p>
+
+  <div class="panel">
+    <div class="bucket-diagram" id="buckets"></div>
+    <p class="footnote">
+      Inside one bucket, all cards already share C's symbol <code class="inline">sᵢ</code>.
+      They can't share anything <i>else</i> too — that would break the rule. So among the
+      <code class="inline">k − 1</code> "other" symbols on each card, every symbol can appear at most once across the whole bucket.
+    </p>
+  </div>
+
+  <p>
+    The non-<code class="inline">sᵢ</code> symbols available are everything not on C —
+    that's <code class="inline">V − k</code> symbols (where V is the total). Each card in the bucket eats up
+    <code class="inline">k − 1</code> distinct ones. So the bucket holds at most
+    <code class="inline">(V − k)/(k − 1)</code> cards.
+  </p>
+  <p>
+    Now look across buckets. Pick one card from bucket 1 and one from bucket 2 — they share
+    <i>different</i> symbols of C, so their one mandatory shared symbol must come from outside C.
+    Working through this consistency forces:
+  </p>
+
+  <div class="formula">
+    Each bucket holds exactly k − 1 cards.<br/>
+    Total cards = 1 (the card C itself) + k buckets × (k − 1) cards each<br/>
+    <br/>
+    <b>N<sub>max</sub> = k² − k + 1</b>
+  </div>
+
+  <p>
+    A symmetric argument (swap "card" and "symbol") gives the same count for distinct symbols. So:
+  </p>
+
+  <div class="key">
+    With <b>k</b> symbols per card, the maximum deck has <b>k² − k + 1</b> cards drawn from <b>k² − k + 1</b> distinct symbols.
+  </div>
+
+  <hr/>
+
+  <h2><span class="step-num">3</span>Plug in numbers</h2>
+
+  <table id="formulaTable">
+    <thead>
+      <tr><th>Symbols per card (k)</th><th>Max cards</th><th>Distinct symbols needed</th><th>Notes</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <p class="footnote">
+    The published Dobble deck ships with <b>55</b> cards, not the theoretical max of 57.
+    Two cards were trimmed — most likely so the deck packs cleanly and avoids printing oddities.
+  </p>
+
+  <hr/>
+
+  <h2><span class="step-num">4</span>Why this is really projective geometry</h2>
+  <p>
+    The system above has a name: a <b>finite projective plane of order q</b>, where <code class="inline">q = k − 1</code>.
+    Translate the words:
+  </p>
+
+  <div class="grid-2">
+    <div class="panel tight">
+      <h3 style="margin-top:0">Dobble language</h3>
+      <ul>
+        <li>card</li>
+        <li>symbol</li>
+        <li>two cards share exactly one symbol</li>
+        <li>each symbol appears on the same number of cards</li>
+      </ul>
+    </div>
+    <div class="panel tight">
+      <h3 style="margin-top:0">Geometry language</h3>
+      <ul>
+        <li>line</li>
+        <li>point</li>
+        <li>two lines meet at exactly one point</li>
+        <li>each point lies on the same number of lines</li>
+      </ul>
+    </div>
+  </div>
+
+  <p>
+    In ordinary geometry, two parallel lines never meet. Projective planes fix this by adding "points at infinity"
+    — every pair of lines crosses, somewhere. Finite projective planes are the same idea, but with a finite number of points.
+  </p>
+
+  <h3>The catch: not every k works</h3>
+  <p>
+    A finite projective plane of order <code class="inline">q</code> is <b>known to exist</b> when <code class="inline">q</code>
+    is a <b>prime power</b> (2, 3, 4, 5, 7, 8, 9, 11, 13, 16, …). For other <code class="inline">q</code>, the answer is sometimes "no" and sometimes still open:
+  </p>
+
+  <div class="panel">
+    <table>
+      <thead><tr><th>Order q</th><th>k = q+1</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>2, 3, 4, 5, 7</td><td>3, 4, 5, 6, 8</td><td>✅ Exists (prime / prime power)</td></tr>
+        <tr><td>6</td><td>7</td><td>❌ Proved impossible (Tarry, 1900 — Euler's officer problem)</td></tr>
+        <tr><td>8, 9</td><td>9, 10</td><td>✅ Exists (prime power)</td></tr>
+        <tr><td>10</td><td>11</td><td>❌ Proved impossible (Lam et al, 1989 — massive computer search)</td></tr>
+        <tr><td>12</td><td>13</td><td>❓ <b>Open problem to this day</b></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    So a Dobble-style deck with <b>7 symbols per card</b> is not just hard to design — it's <i>provably impossible</i>.
+    The closest workable values are k = 6 (gives 31 cards) and k = 8 (gives 57). Eight is the prettiest size that's
+    still playable in your hand. That's why Dobble is what it is.
+  </p>
+
+  <hr/>
+
+  <h2><span class="step-num">5</span>Try it on a Dobble-sized deck</h2>
+  <p>
+    Below is a real projective-plane-of-order-7 construction: 57 cards, 57 symbols, 8 symbols each.
+    Pick any two cards and we'll find their shared symbol.
+  </p>
+
+  <div class="panel">
+    <div class="controls">
+      <button id="k8-shuffle">Show me 6 random cards</button>
+      <button id="k8-clear">Clear selection</button>
+      <span class="pill">Selected: <b style="margin-left:6px" id="k8-count">0</b>/2</span>
+    </div>
+    <div class="deck" id="k8-deck"></div>
+    <div class="result" id="k8-result"></div>
+    <p class="footnote">
+      Symbols are shown as numbers 0–56 instead of pictures. Construction: arithmetic mod 7 over a 7×7 grid plus 8 "points at infinity".
+    </p>
+  </div>
+
+  <hr/>
+
+  <h2>Recap</h2>
+  <div class="key">
+    <p style="margin-top:0">
+      Dobble is a finite projective plane of order 7 (k=8 symbols per card). The "exactly one shared symbol" property
+      is what mathematicians call <b>incidence geometry</b>. The formula
+      <b>N = k² − k + 1</b> drops out of a clean counting argument.
+    </p>
+    <p style="margin-bottom:0">
+      The choice of k = 8 isn't arbitrary — it sits at the sweet spot where the geometry exists,
+      the deck is a reasonable size (57), and a card fits in your hand. k = 7 was off the table because
+      the underlying geometry literally cannot exist.
+    </p>
+  </div>
+
+  <p class="footnote" style="margin-top:32px">
+    Further reading: Fano plane, finite projective planes, the Bruck–Ryser–Chowla theorem,
+    and Lam's 1989 proof that order-10 planes don't exist.
+  </p>
+
+</div>
+
+<script>
+// ============================================================
+// Section 1: k=3 deck (the Fano plane)
+// ============================================================
+const k3Cards = [
+  ['A','B','C'],
+  ['A','D','E'],
+  ['A','F','G'],
+  ['B','D','F'],
+  ['B','E','G'],
+  ['C','D','G'],
+  ['C','E','F']
+];
+const symColor = {
+  'A': '#ffd166', 'B': '#06d6a0', 'C': '#ef476f',
+  'D': '#4cc9f0', 'E': '#b388eb', 'F': '#f78c6b', 'G': '#90be6d'
+};
+
+const k3DeckEl = document.getElementById('k3-deck');
+let k3Selected = [];
+
+function renderK3() {
+  k3DeckEl.innerHTML = '';
+  k3Cards.forEach((card, i) => {
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.dataset.idx = i;
+    el.innerHTML = `<span class="label">card ${i+1}</span>` + card.map(s =>
+      `<span class="sym" data-sym="${s}" style="background:${symColor[s]}">${s}</span>`
+    ).join('');
+    el.addEventListener('click', () => toggleK3(i));
+    el.addEventListener('mouseenter', () => highlightFanoLine(i));
+    el.addEventListener('mouseleave', () => highlightFanoLine(null));
+    k3DeckEl.appendChild(el);
+  });
+}
+
+function toggleK3(i) {
+  const idxInSel = k3Selected.indexOf(i);
+  if (idxInSel >= 0) {
+    k3Selected.splice(idxInSel, 1);
+  } else {
+    if (k3Selected.length >= 2) k3Selected.shift();
+    k3Selected.push(i);
+  }
+  updateK3Selection();
+}
+
+function updateK3Selection() {
+  document.querySelectorAll('#k3-deck .card').forEach(c => {
+    c.classList.toggle('selected', k3Selected.includes(parseInt(c.dataset.idx)));
+    c.querySelectorAll('.sym').forEach(s => s.classList.remove('match'));
+  });
+  document.getElementById('k3-count').textContent = k3Selected.length;
+  const r = document.getElementById('k3-result');
+  if (k3Selected.length === 2) {
+    const a = k3Cards[k3Selected[0]];
+    const b = k3Cards[k3Selected[1]];
+    const shared = a.filter(x => b.includes(x));
+    r.className = 'result show good';
+    r.innerHTML = `Cards ${k3Selected[0]+1} and ${k3Selected[1]+1} share exactly <b>1</b> symbol: <b>${shared[0]}</b>.`;
+    document.querySelectorAll('#k3-deck .card.selected .sym').forEach(s => {
+      if (s.dataset.sym === shared[0]) s.classList.add('match');
+    });
+  } else {
+    r.className = 'result';
+  }
+}
+
+document.getElementById('k3-clear').addEventListener('click', () => {
+  k3Selected = []; updateK3Selection();
+});
+
+renderK3();
+
+// ============================================================
+// Fano plane SVG
+// ============================================================
+// 7 points: A (top), B (bottom-left), C (bottom-right),
+//           D (mid-left), E (mid-right), F (mid-bottom), G (center)
+// 7 lines correspond to the 7 cards above.
+const fano = document.getElementById('fano');
+const cx = 180, cy = 180;
+const R = 130;
+const points = {
+  A: { x: cx,           y: cy - R },
+  B: { x: cx - R*0.866, y: cy + R*0.5 },
+  C: { x: cx + R*0.866, y: cy + R*0.5 },
+  D: { x: (cx + (cx - R*0.866))/2, y: (cy - R + cy + R*0.5)/2 },
+  E: { x: (cx + (cx + R*0.866))/2, y: (cy - R + cy + R*0.5)/2 },
+  F: { x: cx, y: cy + R*0.5 },
+  G: { x: cx, y: cy + 18 }   // center, slightly down so circle line passes through it
+};
+// In the Fano plane, line "ABC"... here we map our cards to lines
+// k3Cards: ABC, ADE, AFG, BDF, BEG, CDG, CEF
+// We need: triangle sides for ABF? Let's pick a clean layout:
+// Line 1 (A,B,C): outer triangle? No - we want straight lines or one circle.
+// Standard Fano: 3 sides + 3 medians + 1 circle through midpoints.
+// Vertices: A, B, C. Midpoints: D=mid(AB), E=mid(AC), F=mid(BC). Center: G.
+// Lines: AB-side has A,D,B  →  card "ABD" (not in our list).
+// Easier: re-map our cards to standard Fano. Use:
+//   1: A B C  (we'll use as "outer triangle... but triangle is 3 separate lines)
+// Standard Fano lines (using A,B,C,D,E,F,G): {A,B,F}, {A,D,C}, {B,D,E}, {C,F,E}, {A,E,G}, {B,C,G}*, {D,F,G} — circle.
+// Rather than re-derive, just relabel our 7 cards onto 7 standard Fano lines:
+// Standard Fano with vertices V1,V2,V3, midpoints M12,M13,M23, center C0:
+//   sides: {V1, M12, V2}, {V1, M13, V3}, {V2, M23, V3}
+//   medians: {V1, C0, M23}, {V2, C0, M13}, {V3, C0, M12}
+//   circle: {M12, M13, M23}
+// Map: V1=A, V2=B, V3=C, M12=D, M13=E, M23=F, C0=G  →  lines:
+//  {A,D,B}, {A,E,C}, {B,F,C}, {A,G,F}, {B,G,E}, {C,G,D}, {D,E,F}
+// These are 7 lines but different from my earlier k3Cards. Let me overwrite k3Cards to match.
+const fanoLines = [
+  ['A','D','B'],
+  ['A','E','C'],
+  ['B','F','C'],
+  ['A','G','F'],
+  ['B','G','E'],
+  ['C','G','D'],
+  ['D','E','F']  // circle
+];
+// Update k3Cards to match these so the Fano highlight matches the cards
+k3Cards.length = 0;
+fanoLines.forEach(l => k3Cards.push(l));
+renderK3();
+
+// Re-position points to match the standard Fano:
+// V1=A top, V2=B bottom-left, V3=C bottom-right
+// M12=D mid AB, M13=E mid AC, M23=F mid BC, G center (slightly inside circle)
+const A = { x: cx,            y: cy - R };
+const B = { x: cx - R*0.866,  y: cy + R*0.5 };
+const C = { x: cx + R*0.866,  y: cy + R*0.5 };
+const Dp = { x: (A.x+B.x)/2,   y: (A.y+B.y)/2 };
+const Ep = { x: (A.x+C.x)/2,   y: (A.y+C.y)/2 };
+const Fp = { x: (B.x+C.x)/2,   y: (B.y+C.y)/2 };
+const Gp = { x: cx, y: cy + 4 }; // incentre-ish
+const pts = { A, B, C, D: Dp, E: Ep, F: Fp, G: Gp };
+
+// Draw 6 straight lines + 1 circle (the line {D,E,F})
+const svgNS = 'http://www.w3.org/2000/svg';
+function makeLine(p1, p2, idx) {
+  const l = document.createElementNS(svgNS, 'line');
+  l.setAttribute('x1', p1.x); l.setAttribute('y1', p1.y);
+  l.setAttribute('x2', p2.x); l.setAttribute('y2', p2.y);
+  l.dataset.line = idx;
+  return l;
+}
+// Straight lines: extend a bit for visual
+function extend(p1, p2, ext=14) {
+  const dx = p2.x - p1.x, dy = p2.y - p1.y;
+  const len = Math.hypot(dx, dy);
+  const ux = dx/len, uy = dy/len;
+  return {
+    a: { x: p1.x - ux*ext, y: p1.y - uy*ext },
+    b: { x: p2.x + ux*ext, y: p2.y + uy*ext }
+  };
+}
+// 0: side AB (through D)
+let s = extend(A, B); fano.appendChild(makeLine(s.a, s.b, 0));
+// 1: side AC (through E)
+s = extend(A, C); fano.appendChild(makeLine(s.a, s.b, 1));
+// 2: side BC (through F)
+s = extend(B, C); fano.appendChild(makeLine(s.a, s.b, 2));
+// 3: median from A through G to F
+s = extend(A, Fp); fano.appendChild(makeLine(s.a, s.b, 3));
+// 4: median from B through G to E
+s = extend(B, Ep); fano.appendChild(makeLine(s.a, s.b, 4));
+// 5: median from C through G to D
+s = extend(C, Dp); fano.appendChild(makeLine(s.a, s.b, 5));
+// 6: circle through D, E, F (the inscribed circle of triangle ABC)
+// center = centroid of D,E,F = centroid of triangle = (cx, (A.y+B.y+C.y)/3)
+const circCx = (Dp.x + Ep.x + Fp.x)/3;
+const circCy = (Dp.y + Ep.y + Fp.y)/3;
+const circR = Math.hypot(Dp.x - circCx, Dp.y - circCy);
+const circle = document.createElementNS(svgNS, 'circle');
+circle.setAttribute('cx', circCx);
+circle.setAttribute('cy', circCy);
+circle.setAttribute('r', circR);
+circle.setAttribute('class', 'bigcircle');
+circle.dataset.line = 6;
+fano.appendChild(circle);
+
+// Draw points
+Object.entries(pts).forEach(([name, p]) => {
+  const c = document.createElementNS(svgNS, 'circle');
+  c.setAttribute('cx', p.x); c.setAttribute('cy', p.y);
+  c.setAttribute('r', 13);
+  c.setAttribute('class', 'point');
+  fano.appendChild(c);
+  const t = document.createElementNS(svgNS, 'text');
+  t.setAttribute('x', p.x); t.setAttribute('y', p.y + 5);
+  t.setAttribute('text-anchor', 'middle');
+  t.textContent = name;
+  fano.appendChild(t);
+});
+
+function highlightFanoLine(idx) {
+  fano.querySelectorAll('line, circle.bigcircle').forEach(el => {
+    el.classList.toggle('lit', String(el.dataset.line) === String(idx));
+  });
+}
+
+// ============================================================
+// Bucket diagram
+// ============================================================
+const buckets = document.getElementById('buckets');
+for (let i = 1; i <= 8; i++) {
+  const b = document.createElement('div');
+  b.className = 'bucket';
+  b.innerHTML = `<div class="head">bucket s<sub>${i}</sub></div>
+    <div class="count">cards sharing s<sub>${i}</sub> with C</div>
+    <div style="margin-top:8px; color:var(--ink-dim)">≤ k − 1 cards</div>`;
+  buckets.appendChild(b);
+}
+
+// ============================================================
+// Formula table
+// ============================================================
+const ks = [3, 4, 5, 6, 7, 8, 9];
+const tbody = document.querySelector('#formulaTable tbody');
+ks.forEach(k => {
+  const N = k*k - k + 1;
+  const q = k - 1;
+  let note = '';
+  if (k === 8) note = '← real Dobble (q = 7, prime)';
+  else if (k === 7) note = 'q = 6 — projective plane provably does not exist';
+  else if (k === 11) note = 'q = 10 — proved impossible by computer search';
+  else if (q === 1 || isPrimePower(q)) note = `q = ${q} (prime power → exists)`;
+  const tr = document.createElement('tr');
+  if (k === 8) tr.className = 'highlight-row';
+  tr.innerHTML = `<td>${k}</td><td>${N}</td><td>${N}</td><td>${note}</td>`;
+  tbody.appendChild(tr);
+});
+function isPrimePower(n) {
+  if (n < 2) return false;
+  for (let p = 2; p * p <= n; p++) {
+    if (n % p === 0) {
+      while (n % p === 0) n /= p;
+      return n === 1;
+    }
+  }
+  return true;
+}
+
+// ============================================================
+// Section 5: build a real projective plane of order 7
+// 57 cards, 57 symbols, 8 per card.
+// ============================================================
+// Construction (standard finite affine + points at infinity):
+// Points labeled 0..56.
+//   - 49 "affine" points: (x,y) for x,y in 0..6, labeled  y*7 + x
+//   - 7 "slope" points at infinity: labeled 49..55  (one per slope m=0..6)
+//   - 1 "vertical" point at infinity: labeled 56
+// Lines:
+//   - 49 "non-vertical" lines, one per (m,b) with m,b in 0..6:
+//        all points (x, m*x + b mod 7) for x=0..6  PLUS slope-point 49+m
+//   - 7 "vertical" lines, one per c in 0..6:
+//        all points (c, y) for y=0..6  PLUS the vertical point 56
+//   - 1 "line at infinity":
+//        all 7 slope points (49..55) PLUS the vertical point 56
+// Total lines: 49 + 7 + 1 = 57. Each line has 8 points. ✓
+const PP_LINES = [];
+for (let m = 0; m < 7; m++) {
+  for (let b = 0; b < 7; b++) {
+    const line = [];
+    for (let x = 0; x < 7; x++) {
+      const y = (m * x + b) % 7;
+      line.push(y * 7 + x);
+    }
+    line.push(49 + m);
+    PP_LINES.push(line);
+  }
+}
+for (let c = 0; c < 7; c++) {
+  const line = [];
+  for (let y = 0; y < 7; y++) line.push(y * 7 + c);
+  line.push(56);
+  PP_LINES.push(line);
+}
+{
+  const line = [];
+  for (let i = 49; i <= 56; i++) line.push(i);
+  PP_LINES.push(line);
+}
+// Sanity: every pair of lines intersects in exactly one point
+function verify() {
+  for (let i = 0; i < PP_LINES.length; i++) {
+    for (let j = i+1; j < PP_LINES.length; j++) {
+      const inter = PP_LINES[i].filter(x => PP_LINES[j].includes(x));
+      if (inter.length !== 1) {
+        console.error('FAIL', i, j, inter);
+        return false;
+      }
+    }
+  }
+  return true;
+}
+console.log('PP order 7 valid:', verify(), 'lines:', PP_LINES.length);
+
+const k8DeckEl = document.getElementById('k8-deck');
+let k8Visible = [];
+let k8Selected = [];
+
+// 57 distinct hues for symbol coloring
+function hslColor(n) {
+  const h = (n * 137.5) % 360;
+  return `hsl(${h}, 70%, 65%)`;
+}
+
+function renderK8() {
+  k8DeckEl.innerHTML = '';
+  k8Visible.forEach((lineIdx) => {
+    const line = PP_LINES[lineIdx];
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.dataset.idx = lineIdx;
+    el.style.aspectRatio = 'auto';
+    el.style.minHeight = '180px';
+    el.innerHTML = `<span class="label">card #${lineIdx}</span>` + line.map(s =>
+      `<span class="sym" data-sym="${s}" style="background:${hslColor(s)}; font-size:14px; width:32px; height:32px;">${s}</span>`
+    ).join('');
+    el.addEventListener('click', () => toggleK8(lineIdx));
+    k8DeckEl.appendChild(el);
+  });
+  document.getElementById('k8-count').textContent = k8Selected.length;
+}
+
+function toggleK8(lineIdx) {
+  const i = k8Selected.indexOf(lineIdx);
+  if (i >= 0) k8Selected.splice(i, 1);
+  else {
+    if (k8Selected.length >= 2) k8Selected.shift();
+    k8Selected.push(lineIdx);
+  }
+  updateK8Selection();
+}
+
+function updateK8Selection() {
+  document.querySelectorAll('#k8-deck .card').forEach(c => {
+    c.classList.toggle('selected', k8Selected.includes(parseInt(c.dataset.idx)));
+    c.querySelectorAll('.sym').forEach(s => s.classList.remove('match'));
+  });
+  document.getElementById('k8-count').textContent = k8Selected.length;
+  const r = document.getElementById('k8-result');
+  if (k8Selected.length === 2) {
+    const a = PP_LINES[k8Selected[0]];
+    const b = PP_LINES[k8Selected[1]];
+    const shared = a.filter(x => b.includes(x));
+    r.className = 'result show good';
+    r.innerHTML = `Cards #${k8Selected[0]} and #${k8Selected[1]} share exactly <b>1</b> symbol: <b>${shared.join(', ')}</b>.`;
+    document.querySelectorAll('#k8-deck .card.selected .sym').forEach(s => {
+      if (parseInt(s.dataset.sym) === shared[0]) s.classList.add('match');
+    });
+  } else {
+    r.className = 'result';
+  }
+}
+
+function shuffleK8() {
+  const indices = Array.from({length: 57}, (_, i) => i);
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  k8Visible = indices.slice(0, 6);
+  k8Selected = [];
+  renderK8();
+}
+
+document.getElementById('k8-shuffle').addEventListener('click', shuffleK8);
+document.getElementById('k8-clear').addEventListener('click', () => {
+  k8Selected = []; updateK8Selection();
+});
+
+shuffleK8();
+</script>
+</body>
+</html>
