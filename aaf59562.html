@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="folio:intent" content="Status report on resume editing session — readiness, target lanes, panel scores, next moves">
+<meta name="folio:tool" content="claude">
+<meta name="folio:prompt" content="/craft generate a report for the resume editing session">
+<title>Resume Project · Status Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* -------- Tokens -------- */
+  :root {
+    /* Type scale */
+    --t-12: 12px;
+    --t-13: 13px;
+    --t-14: 14px;
+    --t-16: 16px;
+    --t-20: 20px;
+    --t-28: 28px;
+    --t-56: 56px;
+
+    /* Neutral ramp */
+    --paper: #f8f5ee;
+    --paper-2: #f3eee4;
+    --ink-100: #14110d;
+    --ink-80:  #2a261f;
+    --ink-60:  #5b554a;
+    --ink-40:  #8b8479;
+    --ink-20:  #c8c2b4;
+    --ink-10:  #dfd8c7;
+
+    /* Single accent (deep ink, restrained) */
+    --accent:  #6b2c1f;
+    --accent-soft: #8c4736;
+
+    /* Status semantics — tiny, used once */
+    --go: #1f5132;
+    --hold: #8a5a00;
+    --no: #6b1f1f;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { -webkit-font-smoothing: antialiased; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink-100);
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    font-size: var(--t-14);
+    line-height: 1.55;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+
+  /* -------- Layout -------- */
+  .doc {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 56px 64px 80px;
+  }
+
+  /* Asymmetric two-column grid for body sections */
+  .row {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 48px;
+    padding: 32px 0;
+    border-top: 1px solid var(--ink-10);
+  }
+
+  .row-label {
+    font-family: 'Newsreader', Georgia, serif;
+    font-style: italic;
+    font-size: var(--t-13);
+    color: var(--ink-60);
+    padding-top: 4px;
+    letter-spacing: 0.02em;
+  }
+
+  .row-body { min-width: 0; }
+
+  /* -------- Masthead -------- */
+  .masthead {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 64px;
+    border-bottom: 1px solid var(--ink-10);
+  }
+
+  .masthead-left {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: var(--t-12);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-60);
+  }
+
+  .masthead-left strong { color: var(--accent); font-weight: 500; letter-spacing: 0.18em; }
+
+  .masthead-right {
+    font-size: var(--t-12);
+    color: var(--ink-40);
+    letter-spacing: 0.04em;
+  }
+
+  /* -------- Headline block -------- */
+  .headline {
+    padding: 80px 0 24px;
+    max-width: 760px;
+  }
+
+  .headline h1 {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: var(--t-56);
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    font-weight: 500;
+    color: var(--ink-100);
+  }
+
+  .headline h1 em {
+    font-style: italic;
+    color: var(--accent);
+    font-weight: 400;
+  }
+
+  .deck {
+    font-family: 'Newsreader', Georgia, serif;
+    font-style: italic;
+    font-size: var(--t-20);
+    line-height: 1.45;
+    color: var(--ink-60);
+    margin-top: 24px;
+    max-width: 620px;
+  }
+
+  /* -------- Stat strip -------- */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin: 56px 0 0;
+    padding: 24px 0 32px;
+    border-top: 1px solid var(--ink-10);
+    border-bottom: 1px solid var(--ink-10);
+  }
+
+  .stat {
+    padding-left: 0;
+  }
+
+  .stat-num {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: var(--t-28);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    color: var(--ink-100);
+    display: block;
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: var(--t-12);
+    color: var(--ink-60);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: 10px;
+  }
+
+  /* -------- Section heads -------- */
+  .row-body h2 {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: var(--t-28);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+
+  .row-body p { color: var(--ink-80); margin-bottom: 16px; }
+  .row-body p:last-child { margin-bottom: 0; }
+
+  /* -------- Tables (density-first) -------- */
+  table.data {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--t-13);
+    margin-top: 8px;
+  }
+
+  table.data th {
+    text-align: left;
+    font-weight: 500;
+    color: var(--ink-60);
+    font-size: var(--t-12);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0 14px 10px 0;
+    border-bottom: 1px solid var(--ink-10);
+  }
+
+  table.data td {
+    padding: 12px 14px 12px 0;
+    vertical-align: top;
+    border-bottom: 1px solid var(--ink-10);
+    color: var(--ink-80);
+  }
+
+  table.data tr:last-child td { border-bottom: none; }
+
+  table.data td.lane {
+    color: var(--ink-100);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  table.data td.score {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: var(--t-16);
+    font-weight: 500;
+    color: var(--ink-100);
+    text-align: right;
+    width: 60px;
+    padding-right: 24px;
+  }
+
+  table.data tfoot td {
+    font-weight: 600;
+    color: var(--ink-100);
+    border-top: 2px solid var(--ink-20);
+    border-bottom: none;
+    padding-top: 14px;
+  }
+
+  table.data tfoot td.score {
+    font-size: var(--t-20);
+  }
+
+  /* Status pills — flat, single-line, no shadow */
+  .pill {
+    display: inline-block;
+    font-size: var(--t-12);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    padding: 0;
+    white-space: nowrap;
+  }
+  .pill.go     { color: var(--go); }
+  .pill.hold   { color: var(--hold); }
+  .pill.no     { color: var(--no); }
+
+  /* -------- Definition list (two-column inside row) -------- */
+  .pairs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px 48px;
+    margin-top: 8px;
+  }
+
+  .pair-h {
+    font-size: var(--t-12);
+    color: var(--ink-60);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--ink-10);
+  }
+
+  .pair-list { list-style: none; font-size: var(--t-13); }
+  .pair-list li {
+    padding: 6px 0;
+    color: var(--ink-80);
+  }
+  .pair-list li::before {
+    content: "—";
+    margin-right: 10px;
+    color: var(--ink-40);
+  }
+
+  /* -------- Ordered priorities -------- */
+  ol.priorities {
+    list-style: none;
+    counter-reset: pri;
+    margin-top: 8px;
+  }
+
+  ol.priorities li {
+    counter-increment: pri;
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 18px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--ink-10);
+  }
+  ol.priorities li:last-child { border-bottom: none; }
+
+  ol.priorities li::before {
+    content: counter(pri, decimal-leading-zero);
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: var(--t-20);
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .pri-title {
+    font-weight: 500;
+    color: var(--ink-100);
+    font-size: var(--t-14);
+    margin-bottom: 4px;
+  }
+  .pri-body { color: var(--ink-60); font-size: var(--t-13); }
+
+  /* -------- Pull quote -------- */
+  blockquote {
+    font-family: 'Newsreader', Georgia, serif;
+    font-style: italic;
+    font-size: var(--t-20);
+    line-height: 1.4;
+    color: var(--ink-80);
+    border-left: 2px solid var(--accent);
+    padding-left: 18px;
+    margin: 8px 0;
+  }
+  blockquote cite {
+    display: block;
+    font-style: normal;
+    font-family: 'Inter', sans-serif;
+    font-size: var(--t-12);
+    color: var(--ink-60);
+    margin-top: 10px;
+    letter-spacing: 0.04em;
+  }
+
+  /* -------- Footer -------- */
+  .footer {
+    margin-top: 72px;
+    padding-top: 32px;
+    border-top: 1px solid var(--ink-10);
+    font-size: var(--t-12);
+    color: var(--ink-60);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .footer code {
+    font-family: 'SF Mono', Menlo, monospace;
+    font-size: var(--t-12);
+    color: var(--ink-80);
+  }
+
+  /* -------- Print -------- */
+  @media print {
+    body { background: white; }
+    .doc { padding: 24px; max-width: 100%; }
+    .row { page-break-inside: avoid; }
+  }
+
+  /* -------- Mobile -------- */
+  @media (max-width: 720px) {
+    .doc { padding: 32px 24px; }
+    .row { grid-template-columns: 1fr; gap: 16px; padding: 24px 0; }
+    .row-label { font-size: var(--t-12); }
+    .headline h1 { font-size: 40px; }
+    .deck { font-size: var(--t-16); }
+    .stats { grid-template-columns: repeat(2, 1fr); gap: 24px 0; }
+    .pairs { grid-template-columns: 1fr; }
+    .masthead { padding-bottom: 32px; }
+    .headline { padding: 40px 0 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="doc">
+
+  <!-- Masthead -->
+  <div class="masthead">
+    <div class="masthead-left">
+      <strong>Resume Project</strong> &nbsp;·&nbsp; Status Report
+    </div>
+    <div class="masthead-right">Vol. 1 · 25 May 2026</div>
+  </div>
+
+  <!-- Headline -->
+  <div class="headline">
+    <h1>Production ready. <em>Send-now approved.</em></h1>
+    <div class="deck">
+      Three rounds of resume editing and six reviewer panels later, the document is ready for the lanes it actually wins. Two stretch lanes need artifact investment, not more bullet polish.
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <span class="stat-num">7.3</span>
+      <div class="stat-label">Panel Average / 10</div>
+    </div>
+    <div class="stat">
+      <span class="stat-num">6</span>
+      <div class="stat-label">Reviewer Personas</div>
+    </div>
+    <div class="stat">
+      <span class="stat-num">1</span>
+      <div class="stat-label">Page, Held Throughout</div>
+    </div>
+    <div class="stat">
+      <span class="stat-num">3</span>
+      <div class="stat-label">Edit Rounds</div>
+    </div>
+  </div>
+
+  <!-- Verdict -->
+  <div class="row">
+    <div class="row-label">Verdict</div>
+    <div class="row-body">
+      <h2>Stop polishing. Start sending.</h2>
+      <p>
+        The resume is now in diminishing-returns territory. Two reviewers said SEND NOW outright; the rest said "one more pass," but their suggested edits — quantify FeatureLens attribution, soften RecSys submission framing, surface the eval harness — are second-order. They do not change a screen verdict.
+      </p>
+      <p>
+        Time spent editing further is time not spent on the moves that <em>do</em> change the verdict: public artifacts, side projects, application volume.
+      </p>
+    </div>
+  </div>
+
+  <!-- Target lanes -->
+  <div class="row">
+    <div class="row-label">Target Lanes</div>
+    <div class="row-body">
+      <h2>Where this resume actually wins.</h2>
+      <table class="data">
+        <thead>
+          <tr>
+            <th>Lane</th>
+            <th>Verdict</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="lane">Consumer-tech ranking<br><span style="color:var(--ink-60); font-weight:400;">Snap · Reddit · Google Ads/YouTube · Airbnb</span></td>
+            <td><span class="pill go">SEND NOW</span></td>
+            <td>Senior screens auto-pass. Staff conversation happens at onsite.</td>
+          </tr>
+          <tr>
+            <td class="lane">Frontier AI labs<br><span style="color:var(--ink-60); font-weight:400;">Anthropic · OpenAI · GDM · xAI</span></td>
+            <td><span class="pill go">SEND NOW</span></td>
+            <td>Apply, accept lottery odds. Phone screen ~15–20%, onsite single-digit.</td>
+          </tr>
+          <tr>
+            <td class="lane">LLM post-training startups</td>
+            <td><span class="pill go">SEND NOW</span></td>
+            <td>Phone screen yes. Expect deep probe on FSDP / vLLM / SGLang.</td>
+          </tr>
+          <tr>
+            <td class="lane">VLM-for-driving<br><span style="color:var(--ink-60); font-weight:400;">Wayve LINGO · Waymo EMMA · Tesla AI V-L</span></td>
+            <td><span class="pill hold">HOLD 2 WK</span></td>
+            <td>Need nuScenes / dashcam VLM side project before applying.</td>
+          </tr>
+          <tr>
+            <td class="lane">Core perception / AV<br><span style="color:var(--ink-60); font-weight:400;">Waymo · Cruise · Zoox</span></td>
+            <td><span class="pill no">SKIP</span></td>
+            <td>Confirmed misfit. Would require resume rewrite + 3D portfolio.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Panel scores -->
+  <div class="row">
+    <div class="row-label">Final Panel</div>
+    <div class="row-body">
+      <h2>Six reviews. One number.</h2>
+      <table class="data">
+        <thead>
+          <tr>
+            <th>Reviewer</th>
+            <th class="score" style="text-align:right;">Score</th>
+            <th>Call</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="lane">General tech recruiter</td>
+            <td class="score">8.5</td>
+            <td>One more pass</td>
+          </tr>
+          <tr>
+            <td class="lane">Staff ML engineer · peer review</td>
+            <td class="score">8.0</td>
+            <td><span class="pill go">Send now</span></td>
+          </tr>
+          <tr>
+            <td class="lane">Consumer-tech ML recruiter</td>
+            <td class="score">7.5</td>
+            <td><span class="pill go">Send now</span></td>
+          </tr>
+          <tr>
+            <td class="lane">AI startup founder · post-training</td>
+            <td class="score">7.0</td>
+            <td>One more pass</td>
+          </tr>
+          <tr>
+            <td class="lane">Frontier lab hiring manager</td>
+            <td class="score">6.5</td>
+            <td>One more pass</td>
+          </tr>
+          <tr>
+            <td class="lane">VLM-for-driving hiring manager</td>
+            <td class="score">6.0</td>
+            <td>One more pass</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td class="lane">Weighted average</td>
+            <td class="score">7.3</td>
+            <td>Send now to primary lanes</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pull quote -->
+  <div class="row">
+    <div class="row-label">Heard</div>
+    <div class="row-body">
+      <blockquote>
+        End-to-end teacher–student distillation tied to a ranking-model NE win is exactly the 2026 applied-LLM-for-ranking story these teams want.
+        <cite>— Consumer-tech ML recruiter, on the Opus → Qwen3 distillation bullet</cite>
+      </blockquote>
+    </div>
+  </div>
+
+  <!-- Decisions -->
+  <div class="row">
+    <div class="row-label">Decisions</div>
+    <div class="row-body">
+      <h2>What's on. What's deliberately not.</h2>
+      <div class="pairs">
+        <div>
+          <div class="pair-h">Surfaced</div>
+          <ul class="pair-list">
+            <li>$30M+ / $20M+ revenue attribution on NE wins</li>
+            <li>Llama 4 Scout named as 80× baseline</li>
+            <li>Opus 4.7 → Qwen3 14B SFT distillation, +9pp</li>
+            <li>FeatureLens adoption: 80 engineers, 250 features</li>
+            <li>RecSys '26 Industry Track first author (under review)</li>
+            <li>ZEFR active-learning + Snap '23 invited talk</li>
+            <li>14-labeler / 12-taxonomy Qdrant platform</li>
+          </ul>
+        </div>
+        <div>
+          <div class="pair-h">Deliberately Omitted</div>
+          <ul class="pair-list">
+            <li>RLHF / DPO / reward modeling — no bullet evidence</li>
+            <li>FSDP / DeepSpeed — no multi-node training</li>
+            <li>Tech-lead / scope language — wasn't accurate</li>
+            <li>vLLM in skills — removed after framing trim</li>
+            <li>Dedicated Talks / Publications section — EB1A optics deprioritized</li>
+            <li>3D perception / BEV / NeRF — none done</li>
+            <li>"Post-Training" in header — overclaim, lacks RL evidence</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Next moves -->
+  <div class="row">
+    <div class="row-label">Next Moves</div>
+    <div class="row-body">
+      <h2>Higher leverage than any bullet edit.</h2>
+      <ol class="priorities">
+        <li>
+          <div>
+            <div class="pri-title">Open-source eval harness for multimodal LLM extraction</div>
+            <div class="pri-body">Demonstrate on public data. Repo + README + blog. Named by three of six reviewers as the single highest-impact addition — converts every "trust me" claim to verified.</div>
+          </div>
+        </li>
+        <li>
+          <div>
+            <div class="pri-title">Public distillation cookbook</div>
+            <div class="pri-body">Distill Sonnet / Opus into Qwen3 on a public extraction task. Show eval-driven +Npp lift end-to-end. GitHub artifact unlocks the AI-startup lane.</div>
+          </div>
+        </li>
+        <li>
+          <div>
+            <div class="pri-title">nuScenes or dashcam VLM weekend project</div>
+            <div class="pri-body">One weekend of work converts the VLM-for-driving score from 6.0 → ~7.5. Required before applying to Wayve / Waymo EMMA tier.</div>
+          </div>
+        </li>
+        <li>
+          <div>
+            <div class="pri-title">Push former Meta team for RecSys '26 acceptance</div>
+            <div class="pri-body">Stay first author, byline carries to the resume. Cheapest credibility upgrade — email the team.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div>
+      Resume: <code>~/work/resume/resume.pdf</code> &nbsp;·&nbsp; Notes: <code>~/work/resume/CONTEXT.md</code>
+    </div>
+    <div>Compiled with tectonic · Single page · 42 KB</div>
+  </div>
+
+</div>
+
+</body>
+</html>
