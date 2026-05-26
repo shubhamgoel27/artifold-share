@@ -1,0 +1,3546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strength Training Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
+<style>
+:root {
+  --bg-deep: #0a0a0f;
+  --bg-base: #12121a;
+  --bg-surface: #1a1a2e;
+  --bg-hover: #222240;
+  --text-primary: #e8e8f0;
+  --text-secondary: #9898b0;
+  --text-muted: #5a5a78;
+  --sidebar-w: 220px;
+  --accent-chest: #f97316;
+  --accent-back: #06b6d4;
+  --accent-legs: #8b5cf6;
+  --accent-shoulders: #eab308;
+  --accent-triceps: #ef4444;
+  --accent-biceps: #22c55e;
+  --accent-forearms: #ec4899;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  display: flex;
+  overflow: hidden;
+}
+#sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--bg-base);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 100;
+}
+#sidebar .logo {
+  padding: 20px 16px 12px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+#sidebar .logo span { font-weight: 400; color: var(--text-muted); font-size: 11px; display: block; margin-top: 2px; }
+.nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  user-select: none;
+}
+.nav-item:hover { background: var(--bg-hover); }
+.nav-item.active { background: var(--bg-hover); color: var(--text-primary); }
+.nav-item .badge {
+  background: rgba(255,255,255,0.08);
+  color: var(--text-muted);
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+#main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  overflow-y: auto;
+  height: 100vh;
+  padding: 28px 32px 60px;
+  background: var(--bg-deep);
+}
+.breadcrumb {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+.breadcrumb a { color: var(--text-secondary); text-decoration: none; cursor: pointer; }
+.breadcrumb a:hover { color: var(--text-primary); }
+.breadcrumb .sep { margin: 0 6px; }
+h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+h1 + .subtitle { color: var(--text-muted); font-size: 13px; margin-bottom: 24px; }
+h2 { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.stat-card {
+  background: var(--bg-surface);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.stat-card .label { font-size: 12px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.stat-card .value { font-size: 28px; font-weight: 700; font-family: 'Inter', monospace; }
+.stat-card .detail { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.card {
+  background: var(--bg-surface);
+  border-radius: 10px;
+  padding: 18px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  position: relative;
+  overflow: hidden;
+}
+.card:hover { background: var(--bg-hover); transform: translateY(-2px); }
+.card .accent-bar { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.card .card-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; margin-top: 4px; }
+.card .card-meta { font-size: 12px; color: var(--text-muted); }
+.card .card-meta strong { color: var(--text-secondary); font-family: monospace; }
+.card .sparkline-wrap { margin-top: 10px; height: 30px; }
+.tab-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.tab-btn {
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.15s;
+}
+.tab-btn:hover { background: var(--bg-hover); }
+.tab-btn.active { background: rgba(96,165,250,0.15); color: #60a5fa; border-color: rgba(96,165,250,0.3); }
+.chart-wrap {
+  background: var(--bg-surface);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  position: relative;
+}
+.chart-wrap canvas { width: 100% !important; max-height: 360px; }
+.filter-row { margin-bottom: 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.filter-row label { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-left: 8px; }
+.filter-row label:first-child { margin-left: 0; }
+.pain-badge { display: inline-block; background: rgba(239,68,68,0.2); color: #ef4444; font-size: 11px; padding: 1px 5px; border-radius: 4px; margin-left: 4px; font-weight: 600; }
+.dom-badge { display: inline-block; font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 500; }
+.dom-badge.dom-chest { background: rgba(249,115,22,0.15); color: #f97316; }
+.dom-badge.dom-delt { background: rgba(234,179,8,0.15); color: #eab308; }
+.dom-badge.dom-back { background: rgba(6,182,212,0.15); color: #06b6d4; }
+.dom-badge.dom-mixed { background: rgba(168,162,158,0.15); color: #a8a29e; }
+.context-legend { font-size: 12px; color: var(--text-muted); margin: 8px 0 16px; display: flex; align-items: center; gap: 6px; }
+.pain-dot { display: inline-block; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; }
+.filter-row select {
+  background: var(--bg-hover);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-primary);
+  font-size: 13px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 16px;
+}
+.data-table th {
+  text-align: left;
+  padding: 8px 10px;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.data-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  color: var(--text-secondary);
+  font-family: monospace;
+  font-size: 12px;
+}
+.data-table tr:hover td { background: rgba(255,255,255,0.02); }
+.meso-timeline {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.meso-bar {
+  height: 28px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  min-width: 36px;
+  padding: 0 8px;
+}
+.section-title { font-size: 14px; font-weight: 600; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.6px; }
+.bw-chart-wrap { max-width: 500px; margin-bottom: 28px; }
+.injury-list { margin-bottom: 28px; }
+.injury-item { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 13px; color: var(--text-secondary); }
+.injury-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; flex-shrink: 0; }
+.injury-dot.ongoing { box-shadow: 0 0 6px #ef4444; }
+@media (max-width: 768px) {
+  #sidebar { position: fixed; width: 100%; height: auto; min-width: 100%; flex-direction: row; overflow-x: auto; overflow-y: hidden; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); z-index: 100; }
+  #sidebar .logo { display: none; }
+  .nav-item { border-left: none; border-bottom: 3px solid transparent; padding: 8px 12px; white-space: nowrap; }
+  .nav-item.active { border-bottom-color: currentColor; }
+  #main { margin-left: 0; margin-top: 50px; padding: 16px; }
+  .card-grid { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .exercise-stats { flex-direction: column; }
+}
+
+/* Exercise stats header */
+.exercise-stats { display: flex; gap: 16px; margin: 16px 0 20px; flex-wrap: wrap; }
+.ex-stat { background: var(--bg-surface); border-radius: 8px; padding: 12px 16px; min-width: 130px; flex: 1; }
+.ex-stat-label { font-size: 11px; color: var(--text-muted); font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px; }
+.ex-stat-value { font-size: 22px; font-weight: 700; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; }
+.ex-stat-detail { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.pr-gold { color: #fbbf24 !important; }
+
+/* Status badges */
+.status-badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; margin-left: 6px; vertical-align: middle; }
+
+/* Heatmap */
+.heatmap-scroll { overflow-x: auto; padding: 12px 0; margin-bottom: 24px; }
+.heatmap-scroll canvas { display: block; }
+.heatmap-labels { display: flex; gap: 2px; margin-bottom: 4px; font-size: 10px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+<nav id="sidebar">
+  <div class="logo">Strength Tracker<span>Progression Dashboard</span></div>
+  <div id="nav-items"></div>
+</nav>
+<div id="main"></div>
+
+<script>
+// ============================================================
+// RAW MARKDOWN DATA
+// ============================================================
+const RAW_FILES = {
+chest: `# Chest Exercises
+
+> **Format:** \`date: weight(lbs/kg)-reps/reps/reps\` | Parenthetical notes are trainer cues/observations
+> **Abbreviations:** cD=chest dominant, dD=delt dominant, bD=back dominant, nc=non-continuous, c=continuous, LR=low range, HR=high range, HS=hip shift, perf=perfect, mod=moderate, lite=light, diffi=difficult, drop=drop set, wu=warm-up
+
+---
+
+## Bench DB Press
+
+**Starting weight:** 25 lbs | **Current working range:** 40-50 lbs
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 17-Oct-22 | 25-15 / 30-13 / 35-8 | |
+| 04-Nov-22 | 25-15(6) / 30-15(4) / 35-10 | Chest dominant |
+| 22-Nov-22 | 25-15 / 35-12 / 40-3 / 35-8 | Start with 30s |
+| 09-Dec-22 | 30-15 / 30-12 / 35-6 / 30-10 | |
+| 13-Dec-22 | 30-15 / 35-11 / 35-7 | |
+| 02-Jan-23 | 30-15 / 30-12 / 35-6 | |
+| 10-Jan-23 | 30-12 / 30-12 / 35-6 | Post 12-rep push-ups |
+| 18-Jan-23 | 30-15 / 30-13 / 40-6 | |
+| 25-Jan-23 | 30-12 / 35-12(0) / 40-6 | |
+| 31-Jan-23 | 35-12 / 40-8 / 40-4 | Chest dominant |
+| 17-Feb-23 | 35-10 / 35-7 / 35-10 | Delt dominant, body sore from GX |
+| 24-Feb-23 | 35-10 / 35-6 / 35-12 | Chest dominant, post Smith incline |
+| 09-Jan-24 | 30-15 / 35-12(3) / 40-14(0) | Start at 35 |
+| 18-Jan-24 | 35-12(shaky) / 40-15 / 45-5 | |
+| 20-Jan-24 | 40-11 / 45-6 / 40-8 | Post inclines |
+| 30-Jan-24 | 40-15 / 45-8 / 45-9 | |
+| 06-Feb-24 | 40-15 / 45-10 / 45-9 | |
+| 13-Feb-24 | 40-14 / 45-8 / 45-9 | Micro wavy at bottom |
+| 02-Mar-24 | 40-12(3/best) / 45-10(2) / 50-6 / 30-12 | |
+| 15-Mar-24 | 40-12 / 45-8 / 45-10(drop) | |
+| 25-Jun-24 | 35-15(non-uni) / 40-13 / 45-6 | |
+| 02-Jul-24 | 35-15 / 40-12 / 40-10 | Delt dominant |
+| 10-Sep-24 | 35-15(wavy) / 40-12(better) / 40-12 | Chest dominant |
+| 27-Nov-24 | 35-15 / 40-15 / 45-5 | Mixed |
+| 24-Dec-24 | 35-15 / 40-15 / 45-8 | |
+| 06-Jan-25 | 35-15 / 40-15 / 45-8 | Delt dominant |
+| 04-Feb-25 | 35-15 / 40-15 / 45-8 | Chest dominant |
+| 11-Mar-25 | 40-15(nc) / 40-12(7c) / 45-7 | Chest dominant |
+| 01-Jul-25 | 40x3 | Delt pain still on, slightly better (rehab) |
+| 08-Jul-25 | 20- / 35-15(3.5/10 discomf last 8) / 35-12(stable) / 35-15(9/10 exec) | Delt same |
+| 15-Jul-25 | 20- / 35-15 / 35-12 / 35-15 | |
+| 05-Aug-25 | Floor: 35-3(pain) -> Bench: 35-12(2/10) / 12(1/10) / 12(sort) | |
+| 03-Sep-25 | 35-15(1/10) / 40-6(general fatigue) / 35-12 | |
+| 24-Oct-25 | 35-15 / 40-10(1/10) / 40-10 | |
+| 04-Dec-25 | 35-15 / 40-12(0/10) / 45-8(0/10) | |
+| 13-Jan-26 | 40 / 45 / 40 | |
+| 03-Feb-26 | 40 / 45 / 40 | |
+| 20-Feb-26 | 40 / 45 / 40 | L wrist increased |
+| 06-Mar-26 | 40 / 45 / 50-6 | Back dominant |
+| 26-Mar-26 | 40 / 45 / 50-6 | |
+
+---
+
+## Incline DB Press
+
+**Starting weight:** 10 lbs | **Current working range:** 35-40 lbs
+**Angles used:** 15, 30, 45 degrees
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 05-Sep-22 | 10-12 / 10-10 | |
+| 30-Sep-22 | 20-13 / 25-12 / 25-12(3) | US |
+| 10-Oct-22 | 25-13 / 25-8 / 25-10 | Start with 25s |
+| 25-Oct-22 | 25-15 / 30-12 / 35-6 | Low incline, shoulder dominant |
+| 04-Nov-22 | 25-8 / 25-7 / 25-10 | Chest dominant |
+| 19-Dec-22 | 12.5-15 / 12.5-13 / 15-6(0) / 15-8 | Low incline, delt dominant |
+| 02-Jan-23 | 25-11 / 25-10 / 25-8 | |
+| 10-Jan-23 | 25-10 / 25-12 / 30-7 | |
+| 25-Jan-23 | 25-12 / 25-12 / 30-7 | |
+| 31-Jan-23 | 25-10 / 25-15 / 30-6 | Chest dom, post OHP |
+| 07-Feb-23 | 25-12 / 30-12(4) / 35-9 | Delt dom, low incline, start at 30s |
+| 20-Dec-23 | 25-15 / 30-12 / 30-10 | Mixed |
+| 02-Jan-24 | 30-12 / 35-12 / 40-9 | Low incline |
+| 13-Jan-24 | 35-12 / 40-8 / 40-8 | Low (not super low) |
+| 20-Jan-24 | 35-12 / 40-6 / 40-8 | 30 degrees |
+| 02-Feb-24 | 35-13 / 35-10 / 35-12 | 15 degrees, micro wave at bottom |
+| 06-Feb-24 | 35-10 / 30-12 / 30-9 | 30 degrees, post flats |
+| 13-Feb-24 | 35-12 / 40-10(grind hard) / 45-4 | |
+| 22-Feb-24 | 35-12(2) / 40-10(2) / 45-8 | 15 degrees, start at 40 |
+| 02-Mar-24 | 35-10 / 35-10 / 35-12 | 30 degrees |
+| 15-Mar-24 | 35-10 / 35-10 / 35-12 | |
+| 10-Jun-24 | 30-15(wavy) / 35-12(better) / 35-12 | 15 degrees |
+| 17-Jun-24 | 30-12(2/3) / 35-12(hard/1-2) / 35-12 | 45 degrees |
+| 25-Jun-24 | 35-8 / 35-12 / 35-8 | 30 degrees |
+| 13-Jul-24 | 30-15 / 30-12(slight L delt discomf) / 30-12 | Chest dom, 45 degrees |
+| 23-Jul-24 | 35-12 / 40-8 / 40-8 | Delt dom |
+| 30-Jul-24 | 35-12 / 40-8 / 35-10 | Chest dom, 30 degrees, pinch sensation from Smith |
+| 09-Aug-24 | 35-14 / 40-6 / 35-9 | Chest dom, 30 degrees |
+| 02-Sep-24 | 35-15 / 40-10 / 40-8 | Chest dom, 30 degrees |
+| 25-Sep-24 | 35-14 / 40-12(0/HR) / 45-3(drop/great control) | |
+| 12-Oct-24 | 35-12 / 35-15 / 40-6 | Chest dom |
+| 05-Nov-24 | 35-15 / 40-10 / 40-10(RPE 9) | Chest dom |
+| 03-Dec-24 | 35-15 / 40-10 / 40-10 | 15 degrees |
+| 30-Dec-24 | 35s-11 / 10 / 10 | 30 degrees |
+| 13-Jan-25 | 35s-11 / 40s-9(perf) / 40-5(drop) | |
+| 17-Feb-25 | 35s-12(shaky torso/2) / 12(better/1) / 40s-9 | Chest dom |
+| 07-Feb-25 | 35-15 / 40-10 / 40-8 | Chest dom |
+| 10-Jun-25 | 35-12 / 40-6 / 35-10 | Switched from OHP (mild max pain, doable) |
+| 25-Jul-25 | 35-12(all reps slight delt) / flat-35-15(better) / 40-15(better) | 15 deg, post rehab set |
+| 26-Nov-25 | 20s / 35s-12(2/3 pinch by end) / 40s-10 | Give 20s first |
+| 23-Dec-25 | 35s / 40s / 35s | |
+| 30-Jan-26 | 35s / 40s / 35s | |
+| 09-Feb-26 | 35s / 40s / 35s | |
+| 01-Mar-26 | 35s / 40s / 35s | |
+| 11-Mar-26 | 35s / 40s / 35s | |
+| 03-Apr-26 | 35s / 40s / 35s | 15 degrees |
+
+---
+
+## Smith Chest Press
+
+**Angles:** Flat (0), 15, 30 degrees
+**Current working range:** 25s-40s on Smith
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 24-Feb-23 | Inc: empty / 10s-12 / 15s-12 / 20s-7 | |
+| 20-Jun-24 | Inc: 15-empty / 10s-16 / 25s-12 / 35s-9 | Wrist in high extension |
+| 13-Jul-24 | Flat: empty / 25s-15 / 35s-12 / 40s-6(drop) | Chest dom |
+| 30-Jul-24 | empty / 25s-15 / 35-10 / 35-9 | Weird decline bench, micro pinch build up |
+| 02-Sep-24 | empty / 25s-15 / 35s-7 / 35s-8 | Chest dom |
+| 25-Sep-24 | empty / 25s-15 / 35s-10 / 35s-15 | |
+| 12-Oct-24 | empty / 25s-15 / 35s-12 / 35s-10 | Chest dom |
+| 21-Nov-24 | empty / 25s-15 / 35s-12 / 35s-10 | Mixed, contact missed mostly, hard cue/sorted/uni reps |
+| 08-Dec-24 | empty / 25s-15 / 35s-12 / 40s-7 | 15 degrees, mixed |
+| 30-Dec-24 | 30s-15 / 35s-15 / 40s-9 | Flat |
+| 13-Jan-25 | 30s-15 / 35s-15 / 40s-10 | Chest dom, cued for breathing at top |
+| 04-Feb-25 | 25s-15 / 35s-8 / 35s-10 | 30 degrees |
+| 13-Feb-25 | 25s-15 / 35s-11 / 35s-10 | Flat |
+| 11-Mar-25 | 25s-15 / 35s-11 / 35s-10 | 30 degrees, dropped |
+| 07-Apr-25 | 35s-12 / 35s-11(missed contact) / 35s-10 | Flat, chest dom |
+| 30-May-25 | 25s-15(mild still) / 35s-12(same/no increase) / 35s-10 | L delt still on |
+| 19-Aug-25 | 25s-15 / 35s-10 / 35s-10 | Force elbow in, not turning out |
+| 12-Sep-25 | 25s-15(1-2/10) / 35s-10(3/10) / 35s-6 | 15 degrees |
+| 28-Oct-25 | 25s-12(w3/10) / 25s-11(wrist better/delt 2/10) / 25s-12 | 30 degrees |
+| 03-Oct-25 | 25s-12 / 35s-10 / 35s-9 | Flat |
+| 04-Dec-25 | 25s-12 / 30s-12(2/10) / 30s-10 | 30 degrees |
+| 15-Dec-25 | 25s / 35s(0/10 but instability sensation at L) / 40s-8 | Flat |
+| 23-Dec-25 | 25s / 35s / 45s-6 | |
+| 02-Jan-26 | 25s / 35s / 45s-6 | 30 degrees |
+| 27-Jan-26 | 25s / 32.5s / 35s | 30 degrees |
+| 09-Feb-26 | 25s / 32.5s / 42.5-8 | Flat |
+| 20-Feb-26 | 25s / 32.5s / 42.5-8 | 30 degrees |
+| 02-Apr-26 | 30s / 40s / 40s | Flat, back dominant |
+
+---
+
+## Machine Chest Press
+
+**Starting weight:** 70 lbs | **Current working range:** 85-90 lbs
+**Note:** Machine height set to 6
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 22-Nov-22 | 70-15(nc) / 80-8(nc) / 75-8(c) | Start at 70 |
+| 10-Apr-23 | 65-12 / 65-12 / 65-12 | |
+| 20-Dec-23 | 70-12 / 75-12(grind) / 80-15 | |
+| 30-Dec-23 | 65-12 / 75-12(grind) / 85-10(hard grind/good form) | |
+| 05-Jan-24 | 65-10 / 70-14 / 75-15(grind) | Low feel factor in chest |
+| 09-Jan-24 | 65-15(good engage) / 75-14 / 75-11(0) | |
+| 25-Jan-24 | 65-15 / 75-15(ok engage) / 85-12 | |
+| 02-Feb-24 | 65-15(mod eng) / 75-15(better) / 85-12 | |
+| 06-Feb-24 | 65-15 / 75-15 / (rear delt discomf L) | |
+| 13-Feb-24 | 70-15 / 80-15 / 90-12(good engage by end) | |
+| 22-Feb-24 | 75-15 / 85-10 / 85-12 | |
+| 02-Mar-24 | 75-15 / 85-7 / 80-15 | |
+| 23-May-24 | 75-15 / 85-12 / 85-5(drop) | |
+| 03-Jun-24 | 75-15 / 80-15 / 85-12(micro L delt discomf) | |
+| 10-Jun-24 | 75-12 / 75-15 / 75-10 | |
+| 20-Jun-24 | 75-15 / 85-15 / 95-8 | |
+| 09-Aug-24 | 80-15 / 90-15 / 100-7(drop) | Chest dom |
+| 10-Sep-24 | 85-9(0) / 80-12 / 80-10 | Chest dom |
+| 05-Nov-24 | 85-14 / 95-7 / 85-14 | |
+| 18-Dec-24 | 80-15 / 85-15 / 90-12 | Mixed |
+| 03-Jan-25 | 85-15 / 90-15 / 95-10 | |
+| 13-Jan-25 | 85-15 / 90-15 / 95-10 | |
+| 17-Feb-25 | 85-15 / 90-15 / 95-10 | |
+| 07-Apr-25 | back off | |
+| 09-May-25 | 85-15 / 90-15 / 95-10 | Delt dom, less discomf, still there |
+| 21-May-25 | 85-15 / 90-15 / 95-10 | Chest dom |
+| 10-Jun-25 | 90-12(L delt slight) / 85-9 / 80-12 | Delt dom, wrist post LB |
+| 18-Jun-25 | 75-7(even elbow/felt slight increase) / 65(half rep)-12 | Hard cue at 75 for elbow angle |
+| 15-Jul-25 | 75-15(2/10 pain) / 80-12(3/10) / 80-13 | |
+| 25-Jul-25 | 75-15 / 80-12 / 80-13 | |
+| 05-Aug-25 | 75-15 / 80-12 / 80-13 | Increasing by end |
+| 22-Aug-25 | 75-15 / 80-12 / 80-13 | |
+| 12-Sep-25 | 70x3 (0-1/10 now, post Smith 3/10) | |
+| 28-Oct-25 | 70 / 80-12 / 80-15(no pinch) | |
+| 11-Nov-25 | 75 / 85-15 / 90-10 | |
+| 26-Nov-25 | 80 / 85 / 75 | |
+| 02-Jan-26 | 85x3 | |
+| 13-Jan-26 | 85x3 | |
+| 30-Jan-26 | 85 / 90 / 90 | |
+| 11-Mar-26 | 85 / 90 / 90 | |
+| 26-Mar-26 | 85 / 90 / 90 | |
+
+---
+
+## Chest Fly (Machine / Cable / DB)
+
+**Machine current range:** 85-100 lbs | **Cable max:** 50 lbs
+
+| Date | Sets (weight-reps) | Variant | Notes |
+|------|-------------------|---------|-------|
+| 22-Nov-22 | 30-12 / 30-12 / 30-12 | Machine | |
+| 25-Jan-23 | 2(10lbs)-15 / 3-12 / 3-15 | Bent-over cable | |
+| 30-Dec-23 | 50-15 / 55-12 / 55-15 | Machine | |
+| 02-Jan-24 | 3-15 / 4-15 / 5-15 | Cable top to bottom | |
+| 05-Jan-24 | 3-15 / 4-5 / 5-15 | Cable | Max load for 15 reps |
+| 13-Jan-24 | 4-15 / 5-15 / 5-15 | Cable | |
+| 13-Jan-24 | 1-15 / 1-15 / 1-15 | Bottom to top | Max load |
+| 20-Jan-24 | 50-15 / 65-15 / 70-15 | Machine | Working range: 60/70/70 |
+| 25-Jan-24 | 30-15 / 35-15 / 35-15 | Cable | Max 35 |
+| 30-Jan-24 | 60-15 / 65-15 / 70-15 | Machine | |
+| 09-Feb-24 | 30-15 / 35-15 / 40-15 | Cable | Start at 35 |
+| 15-Mar-24 | 60-15 / 70-15 / 80-15 | Machine | |
+| 23-May-24 | 60-13 / 55-10(L delt discomf) / 50-15 | Machine | |
+| 10-Jun-24 | 50-15 / 55-15 / 60-15 | Machine | |
+| 20-Jun-24 | 35-20 / 40-20(shaky) / 45-13 | Cable | |
+| 02-Jul-24 | 55-15 / 60-15 / 60-18 | Machine | |
+| 13-Jul-24 | 55-18 / 60-18 / 65-15 | Machine | No delt pain now |
+| 30-Jul-24 | 60-20 / 70-15 / 80-15 | Machine | Working: 75/80/85 |
+| 09-Aug-24 | 75-17 / 80-15 / 85-12 | Machine | Chest dom |
+| 18-Aug-24 | 20-20 / 25-15 / 25-13 | DB 15 deg incline | Delt dom |
+| 02-Sep-24 | 80-15 / 85-13 / 85-15 / 85-12 | Machine | Chest dom |
+| 10-Sep-24 | 80-15(inconsistent) / 80-12 / 80-12 | Machine | Paused max at 85 |
+| 25-Sep-24 | 80-15 / 90-15 / 90-9(drop) | Machine | |
+| 12-Oct-24 | 80-15 / 85-12 / 85-15 | Machine | Working: 80/85/85 |
+| 05-Nov-24 | 40-15 / 45-15 / 45-15(max) | Cable | |
+| 27-Nov-24 | 80-15 / 85-15 / 85-10(L delt pinch) | Machine | |
+| 03-Dec-24 | 80-15 / 85-15 / 85-10 | Machine | |
+| 08-Nov-24 | 85-15 / 85-14 / 90-15 | Machine | |
+| 18-Dec-24 | 85-15 / 85-14 / 90-15 | Machine | |
+| 24-Dec-24 | 85-15 / 85-14 / 90-15 | Machine | |
+| 21-Jan-25 | 85-14 / 90-13 / 90-12 | Machine | Delt dom |
+| 11-Mar-25 | 85-14 / 90-13 / 90-12 | Machine | Chest dom |
+| 25-Mar-25 | 85-14 / 90-13 / 90-12 | Machine | Delt dom |
+| 21-May-25 | 85-14 / 90-13 / 90-12 | Machine | Chest dom |
+| 30-May-25 | 85-14 / 90-13 / 90-12 | Machine | Cue to lock chest out position before starting set |
+| 10-Jun-25 | 85-15 / 85-15(paused) / 90-14 | Machine | No pain in this |
+| 18-Jun-25 | 85 / 90 / 90 | Machine | 90 max for 12 |
+| 01-Jul-25 | 85 / 90 / 90 | Machine | |
+| 08-Jul-25 | 45-15(7.5/10)(3/10 pinch) / 45-15(~8/10) / 45-15 | Cable | |
+| 15-Jul-25 | 85 / 90 / 90 | Machine | |
+| 25-Jul-25 | 80-15 / 85-12(ok on delt) / 85-12 | Machine | |
+| 05-Aug-25 | 80-15 / 85-12 / 90-15(no pain) | Machine | |
+| 19-Aug-25 | 85-15(2/10 pinch) / 90-12 / 85-12(1/10 now) | Machine | |
+| 03-Sep-25 | 85-15 / 90-15 / 90-12 | Machine | |
+| 12-Sep-25 | 40 / 40 / 45 | Cable | 45 max still |
+| 14-Oct-25 | 85-15 / 90-15 / 95-14 | Machine | |
+| 28-Oct-25 | 90-15 / 95-12 / 95-12 | Machine | |
+| 03-Nov-25 | 90-15 / 100-13 / 105-10 | Machine | |
+| 11-Nov-25 | 90-15 / 100-13 / 105-10 | Machine | |
+| 26-Nov-25 | 90-15 / 100-13 / 105-10 | Machine | |
+| 04-Dec-25 | 40-15 / 45-15 / 50-13 | Cable | |
+| 15-Dec-25 | 20-15 / 25-14 / 30-12 | Cable bottom to top | |
+| 23-Dec-25 | 90-15 / 100-13 / 105-10 | Machine | |
+| 02-Jan-26 | 95x3 | Machine | |
+| 13-Jan-26 | 45 / 50 / 50 | Cable | |
+| 30-Jan-26 | 95x3 | Machine | |
+| 09-Feb-26 | 20s x3 | DB | |
+| 20-Feb-26 | 45x3 | Cable | |
+| 26-Mar-26 | 45x3 | Cable | |
+
+---
+
+## Standing DB Fly (Bottom to Top)
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 08-Jul-25 | 20-15(new) / 20-15(7.5/10) / 20-15(ok) | |
+| 05-Aug-25 | 20-15 / 20-15 / 20-15 | |
+
+---
+
+## Floor Press
+
+**Starting weight:** 20 lbs
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 01-Aug-22 | 20-15 / 25-6 / 20-8 | |
+| 26-Aug-22 | 7.5-15 / 10-15 / 12.5- | |
+| 05-Sep-22 | 10-15 / 12.5-15 / 15-12 | Start with 10s |
+| 13-Sep-22 | 25-15 / 30-15 / 35-10 | Seattle/US |
+| 23-Sep-22 | 25-15 / 30-15 / 35-11 | |
+| 30-Sep-22 | 25/30/35 - 15/15/15 | |
+
+---
+
+## Push-Ups
+
+| Date | Sets (reps) | Notes |
+|------|------------|-------|
+| 01-Aug-22 | 10 | |
+| 10-Oct-22 | 16 / 9 / 8 | |
+| 31-Oct-22 | 16 | |
+| 10-Apr-23 | 10 / 7 / 5 | |
+| 18-Jan-24 | 16 / 12 / 15 | |
+| 09-Aug-24 | 15 / 12 / 10 | |
+| 03-Oct-24 | 20 / 14 / 10 | |
+| 23-Oct-24 | 20 / 12 / 9 | Delt dom |
+| 03-Jan-25 | 15 / 10 / 6(drop) | + Knee PUs: 10/8/9 |
+| 17-Feb-25 | 17 / 12 | + Knee: 11, Plank: 2(drop) |
+| 28-Feb-25 | 17 / 12 | + Knee: 11, Plank: 2(drop) |
+| 07-Apr-25 | 17 / 12 | + Knee: 11, Plank: 2(drop) |
+| 21-May-25 | 17 / 12 | + Knee: 11, Plank: 2(drop) |
+| 30-May-25 | Knee down tempo | |
+| 10-Jun-25 | Knee down tempo | |
+| 03-Sep-25 | Knee: 15(1-2/10) / 15 / rev grip: 10(2-3/10) | |
+| 15-Dec-25 | x1 set: 18 (incline bench) | |
+| 09-Feb-26 | x1: Smith: lowest | |
+| 17-Feb-26 | m- x3 | Back dom |
+| 01-Mar-26 | m- x3 | |
+| 19-Mar-26 | m- x3 | |
+| 03-Apr-26 | Smith: m- x3 (2 up) | |`,
+
+back: `# Back Exercises
+
+> **Format:** \`date: weight(lbs/kg)-reps/reps/reps\` | Parenthetical notes are trainer cues/observations
+> **Abbreviations:** nc=non-continuous, c=continuous, LR=low range, RD=range drop, mod=moderate, perf=perfect, drop=drop set, ss=superset, Ds=D-handle, b=break
+
+---
+
+## Lat Pulldown
+
+**Grips:** Wide (rod), close grip, supine/underhand, hammer, prone, machine
+**Starting weight:** 40 lbs | **Current working range:** 90-110 lbs
+
+| Date | Sets (weight-reps) | Grip | Notes |
+|------|-------------------|------|-------|
+| 24-Aug-22 | 40-15 / 47.5-15(5) / 55-15(2) | - | IN. Start at 55 |
+| 26-Sep-22 | 120-10(slight palm discomf) / 110-15 / 120-15(4) | - | US |
+| 05-Jan-23 | 35-10 / 30-15 / 35-14 | - | IN |
+| 21-Jan-23 | 67.5-15 / 75-15 / 82.5-12 | - | US |
+| 26-Jan-23 | 75-12 / 75-15 / 82.5-15 | - | |
+| 02-Feb-23 | 75-13(5) / 82.5-12(2) / 90-12(break at 8) | - | |
+| 21-Feb-23 | 82.5-12(3) / 90-12(2b) / 90-12(pause at 7th) | - | |
+| 12-Apr-23 | 80-15 / 90-12(2) / 95-12(10 cont) | - | |
+| 20-Dec-23 | 90/40-12 / delt shrug-15(grind) / 10+2(better after hard cue) | - | |
+| 05-Jan-24 | 75-15 / 80-15 / 80-15(max struggle) | - | Get faster reps at 80 |
+| 13-Jan-24 | 75-15 / 80-15 / 85-13 | - | |
+| 20-Jan-24 | 77.5-15 / 85-12(low range) / 77.5-12 | Rod | Only 77.5s |
+| 30-Jan-24 | 77.5-14 / 77.5-12 / 70-12 | Rod | |
+| 06-Feb-24 | 75-15 / 85-15 / 90-15 | - | No R delt pain from push. Start at 80 |
+| 24-Feb-24 | 90/85/85-12/15/15 | Rod | |
+| 22-Feb-24 | 90-12 / 85-15 / 85-15 | Rod | |
+| 04-Mar-24 | 90-10 / 85-12 / 75-14 | Supine | Start at 85 |
+| 17-Jun-24 | 85-14(LR) / 85-12(7 ok only) / 75-12(10 ok) | - | |
+| 16-Jul-24 | 75-15(LR) / 75-15(better) / 80-15 | - | |
+| 26-Jul-24 | 70-15(not deep) / 75-15(good tempo) / 80-15(same) | - | |
+| 13-Aug-24 | 70-18 / 85-18 / 100-15(LR/diffi/good) | - | |
+| 06-Sep-24 | 85-18 / 100-15(ok) / 110-10 | - | |
+| 15-Sep-24 | 90-15 / 100-12 / 100-9 | Rod | |
+| 23-Sep-24 | 90-16 / 100-14 / 110-12(10 only) | Machine | |
+| 02-Oct-24 | 90-16 / 100-14 (up to 100) | Machine | |
+| 09-Oct-24 | 90-16 / 100-14 / 110-15 | Machine | |
+| 25-Oct-24 | 90-15(perf arch with wider grip) / 100-12 / 100-10(7 range) | Rod | |
+| 27-Nov-24 | 90 / 100-18 / 110-15 | - | |
+| 18-Dec-24 | 100-18 / 115-15 / 115-13 | - | |
+| 08-Dec-24 | 100-15 / 110-15 / 110-14(LR/shaky) | - | Mixed |
+| 30-Dec-24 | 100-15 / 110-15 / 110-14 | - | |
+| 15-Jan-25 | 90-15 / 100-14(LR) / 100-12(RD by end) | Rod | |
+| 23-Jan-25 | 100-15 / 100-14 / 100-12 | Machine | Hard to keep arched |
+| 05-Feb-25 | 85-15 / 90-14(12 only) / 90-12(ok) | Rod | |
+| 14-Feb-25 | 85-15 / 90-14(12 only) / 90-10(last 2 LR) | - | |
+| 20-Feb-25 | 85-15 / 90-14(12 only) / 100-10 | Supine rod | |
+| 04-Mar-25 | 85-15 / 90-12(ok range/nc) / 90-10(same) | Wide | Working: 90/100/100 |
+| 14-Mar-25 | 85-15 / 90-15(ok/near c) / 100-12(nc) | - | |
+| 14-Mar-25 | 100-10 / 100-12 / 100-12 | Supine | 9-10 max good range |
+| 26-Mar-25 | 100-10 / 100-12 / 100-12 | Wide | |
+| 09-Jun-25 | 100-12 / 100-12 / 105-10(LR) | - | |
+| 26-May-25 | 100-12 / 105-11(R drop) / 105-10 | - | |
+| 26-May-25 | 100-10 / 100-10 / 100-12 | Supine | Shifting to close grip |
+| 05-Jun-25 | 100-15 / 105-8 / 90-12 | Close | |
+| 12-Jun-25 | Wide | Wide | |
+| 12-Jun-25 | Supine | Supine | |
+| 24-Jun-25 | Supine | Supine | Working: 90/100/90 |
+| 10-Jul-25 | 90-13(RD) / 90-12 / 90-12 | Wide | Working: 85/90/90 |
+| 10-Jul-25 | Supine x2 (85) | Supine | |
+| 18-Jul-25 | 85 / 90-15(9/10) / 100-11 | Wide | |
+| 18-Jul-25 | 85 / 90-15(9/10) / 100-10 | Close | |
+| 07-Aug-25 | 90-15 / 100-12(8.5/10) / 105-8 | Wide | |
+| 07-Aug-25 | Supine | Supine | |
+| 28-Aug-25 | 100-15(8.5/10) / 105-10 / 105-10 | Wide | |
+| 28-Aug-25 | 105-8 / 100-12 / 100-12 | Close | |
+| 21-Sep-25 | 100-15 / 105-10 / 105-10 | Wide | |
+| 21-Sep-25 | Supine | Supine | |
+| 24-Oct-25 | 100-15 / 105-10 / 105-10 | Hammer | |
+| 10-Nov-25 | Prone | Prone | |
+| 24-Nov-25 | 100-15 / 105-10 / 105-10 | Hammer | |
+| 24-Nov-25 | 90-10 / 85-15 / 90-12 | Supine | |
+| 09-Dec-25 | Prone | Prone | |
+| 09-Dec-25 | Supine x2 | Supine | |
+| 29-Dec-25 | Prone | Prone | |
+| 29-Dec-25 | Supine x2 | Supine | |
+| 03-Feb-26 | 90x3 | Wide | |
+| 03-Feb-26 | Supine | Supine | |
+| 17-Feb-26 | Prone | Prone | |
+| 17-Feb-26 | Close x2 | Close | |
+| 06-Mar-26 | 100 / 110-15 / 115-11 | Machine handle | |
+| 14-Mar-26 | 100 / 110-15 / 115-11 | - | |
+| 19-Mar-26 | - | - | |
+
+---
+
+## Cable Rows
+
+**Starting weight:** 40 lbs | **Current working range:** 120-180 lbs
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 24-Aug-22 | 40-15 / 47.5-15 / 55-15(4) | IN |
+| 20-Sep-22 | 120-15 / 130-13 / 130-13 | US |
+| 26-Sep-22 | 120-15 / 130-14 / 130-15 | Stick to same loads, attachment height 5 |
+| 03-Oct-22 | 120-15 / 130-15 / 140-12 | |
+| 18-Oct-22 | 130-12 / 130-15 / 140-12 | Chest assisted |
+| 24-Nov-22 | 31kg-15 / 46-15(b@10) / 50-12(b@10) / 50-12(b@7/10/11) | IN |
+| 08-Dec-22 | 40.5-15 / 50.5-15(nc) / 49.5-10(7 cont) | IN |
+| 14-Dec-22 | 49.5-10(heavy) / 50-13(nc/better) / 40-14 / 40-15(b@11) | |
+| 21-Dec-22 | 40-12 / 40-14(nc) / 40-13(nc/drop) | |
+| 05-Jan-23 | 28-15 / 35-15 / 42-10(drop twice) | |
+| 11-Jan-23 | 40-15(b@12) / 50-10(nc) / 40-15(b@10) | |
+| 21-Jan-23 | 67.5-15 / 75-15 / 82.5-15(one pause at 12) | |
+| 02-Feb-23 | 75-15(last 3 slight LR) / 75-15(good) / 90-12(grip adjust) | |
+| 09-Feb-23 | 75-15 / 82.5-15(2b) / 90-13(2 pauses) | |
+| 21-Feb-23 | 82.5-15 / 90-15(2 pauses) / 90-15(1 pause) | |
+| 20-Jan-24 | 70-15 / 77.5-15 / 85-15 | Working: 77.5/85/85 |
+| 30-Jan-24 | 77.5-12 / 70-15 / 70-15 | |
+| 09-Feb-24 | 80-15 / 100-15 / 120-15 | Cable. Start at 120 |
+| 15-May-25 | 120-15 / 140-15 / 180-15 | Used long rod for foot. Working: 170/190/200 |
+
+---
+
+## Cable Face Pulls
+
+**Current working range:** 90-110 lbs cable / 40-50 lbs seated row machine
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 08-Jan-24 | 50-15 / 60-15 / 70-15 | |
+| 23-Jan-24 | ss laterals at 15: 60-15 / 70-15 / 70-15 | |
+| 07-Mar-24 | 70-15 / 80-15 / 80-15(micro paused) | |
+| 31-Mar-24 | 70-15(max for now) / 70-15(better) / 70-15(ok) | |
+| 22-Jun-24 | 70-18(shaky) / 80-15 / 90-18(good) | |
+| 23-Jul-24 | ss laterals: 80-15 / 90-15 / 100-15 | |
+| 03-Sep-24 | 90-18 / 110-15(micro pause) / 110-15 | With legs, post hamstring. Working: 100/110/110 |
+| 18-Sep-24 | 100-12(LR) / 90-18(ok/paused/unstable waist) / 90-18 | Delt dom |
+| 22-Oct-24 | 90-15(1b) / 90-15 / 90-15(1b) | Delt dom |
+| 27-Nov-24 | 90-15 / 90-15 / 100-15(hip moves) | Mixed |
+| 09-Jan-25 | 90-15 / 90-15 / 110-15 | |
+| 05-Feb-25 | Seated row machine rope: 40-14 / 40-15 / 40-15 | |
+| 14-Feb-25 | 40-14(can't halt at 40) / 40-15(better) / 45-15(ok) | |
+| 04-Mar-25 | 40-15(paused) / 45-15(ok/max) / 45-12 | |
+| 26-Mar-25 | 40-15 / 45-15 / 45-12 (45 hard AF at pause) | |
+| 09-Apr-25 | 40-15(can't pause all) / 40-15(ok but unclear by end) / 40-15(perf) | Working: 35/40/40 |
+| 15-May-25 | 70-15 / 90-15(uneven) / 90-15 | |
+| 26-May-25 | Seated row: 40-15 / 45-15 / 45-12 | |
+| 18-Jul-25 | 40-15 / 45-15 / 45-12 | |
+| 29-Jul-25 | 40-15 / 45-15 / 45-12 | |
+| 07-Aug-25 | 45-12 / 40-14 / 40-15 | |
+| 20-Aug-25 | Cable: 70-15 / 80-15 / 80-15 | |
+| 05-Sep-25 | 80x3 | |
+| 10-Nov-25 | Seated row machine: 45-15(mod++) / 45-15(nc) / 45-13(c) | |
+| 22-Dec-25 | Cable: 90 / 100 / 110 | Working: 50/60 |
+| 09-Feb-26 | Cable: 90 / 100 / 110 | |
+| 06-Mar-26 | Cable: 90 / 100 / 110 | |
+| 14-Mar-26 | Cable: 90 / 100 / 110 | |
+
+---
+
+## Cable Close Grip Pulldown
+
+**Grips:** D-handle (Ds), Rod supine, Hammer close
+**Current working range:** 170-190 lbs
+
+| Date | Sets (weight-reps) | Grip | Notes |
+|------|-------------------|------|-------|
+| 09-Feb-23 | 70-15 / 75-12 / 75-13 | - | |
+| 09-Jan-24 | 90-15 / 110-15 / 130-13 | - | |
+| 18-Jan-24 | 120-15 / 140-14 / 150-12(range non-uni) | - | |
+| 25-Jan-24 | 140-12 / 150-9 / 140-12 | - | Hard cue for delt depression |
+| 02-Feb-24 | 140-12 / 140-14 / 140-15 | - | |
+| 13-Feb-24 | 140-15(lite) / 150-15(ok pausing) / 150-12 | Supine | |
+| 24-Mar-24 | 130-15 / 140-15 / 150-15 | - | |
+| 10-Jun-24 | 130-12(unable to arch) / 120-15(ok) / 120-15 | - | |
+| 20-Jun-24 | 130-15(clean) / 150-12 / 150-12(range drop) | - | |
+| 27-Jun-24 | 130-15 / 150-15 / 170-15 | Supine | Working: 160/170/180 |
+| 03-Jul-24 | 160-15 / 180-12 / 190-10(range off) | Ds | |
+| 26-Jul-24 | 170-14 / 180-12 / 180-14 | Ds | |
+| 02-Aug-24 | 170-15(range low) / 170-15(perf) / 190-10(9 deep) | Supine | |
+| 23-Aug-24 | 170-15(good/slight drop) / 180-12 / 180-12 | Ds | |
+| 23-Sep-24 | 170-12 / 170-15 / 180-12 / 190-11 | Supine | |
+| 02-Oct-24 | 170-16 / 180-10 / 180-9 | Ds | |
+| 18-Oct-24 | 170-15 / 180-12(1b) / 180-14(1b/mod+) | Ds | |
+| 21-Nov-24 | 170-15 / 180-12 / 180-14 | Supine | |
+| 03-Dec-24 | 170-15 / 180-12 / 180-14 | Ds | Weird pain inside L chest (2nd set, backed off 3rd) |
+| 24-Dec-24 | 170-15 / 180-12 / 180-14 | Supine | Working: 180/190/190 |
+| 03-Jan-25 | 180-15 / 190-12(0) / 190-11 | Ds | |
+| 09-Jan-25 | 180-15 / 190-12 / 200-10(LR) | - | Working: 90/100/110 |
+| 23-Jan-25 | 180-15 / 190-12 / 190-11 | Supine | |
+| 05-May-25 | 180-15 / 190-12 / 190-11 | Ds | |
+| 15-May-25 | 150-15 / 170-15 / 200-10(8) | - | |
+| 03-Jul-25 | 160-11 / 170-12(10 clean) / 170-10 | - | |
+| 29-Jul-25 | 150-15 / 160-15 / 170-15 | Ds | Switched from Ds (slight L delt) to rod supine. No pain today |
+| 20-Aug-25 | 70-15(mod) / 80-14(RD) / 80-12(10 ok) | Single Ds | |
+| 05-Sep-25 | 70-15 / 80-14 / 80-12 | Supine | |
+| 14-Oct-25 | 180-15 / 190-13 / 190-12 | Ds | |
+| 31-Oct-25 | 180-15 / 190-13 / 190-12 | - | |
+| 01-Dec-25 | 170 / 170 / 180 | Ds | |
+| 22-Dec-25 | 170 / 170 / 180 | - | |
+| 08-Jan-26 | 170 / 170 / 180 | - | |
+| 27-Jan-26 | 170 / 170 / 180 | - | |
+| 01-Mar-26 | 170 / 170 / 180 | - | |
+| 14-Mar-26 | x2 | - | |
+| 02-Apr-26 | 170 / 170 / 180 | - | |
+
+---
+
+## Bent-Over DB Rows
+
+**Starting weight:** 10 lbs | **Current working range:** 40-50 lbs
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 31-Aug-22 | 10-15 / 10-15 / 10-15 | |
+| 26-Sep-22 | 25-12 / 25-15 / 25-10 | US. Maintain same load |
+| 11-Oct-22 | 25-12 / 25-15 / 30-12 | |
+| 18-Oct-22 | 25-15 / 25-12 / 25-12 | |
+| 08-Nov-22 | 25-15 / 25-15 / 30-11 | |
+| 14-Dec-22 | 25-14 / 25-15 / 25-15 / 25-15 | |
+| 05-Jan-23 | 7.5-15 / 10-15 / 10-15 / 10-15 | L arm shooting with more speed & range |
+| 02-Jan-24 | 25-12 / 30-12 / 35-10 | |
+| 09-Jan-24 | 25-15 / 30-15 / 35-11 | |
+| 13-Jan-24 | 35-15 / 40-12 / 40-8(3) | Start at 30s |
+| 25-Jan-24 | 35-15 / 40-12 / 40-12 | |
+| 06-Feb-24 | 35-15(shaky legs) / 35-15 / 35-12 | Start at 30, perfect at 35 |
+| 13-Feb-24 | 30-15(stable) / 35-15(stable) / 40-15(stable) | Start at 35 |
+| 19-Feb-24 | 35-15(stable) / 40-13 / 45-13(heavy) | |
+| 10-Jun-24 | 30-15 / 35-15(tough by end) / 35-15(range drop) | |
+| 27-Jun-24 | 35-15 / 40-15 / 45-12(10 clean) | |
+| 02-Aug-24 | 40-15 / 45-15 / 50-10(diffi) | |
+| 13-Aug-24 | 40-15 / 45-15 / 50-10 | Working: 40/45/45 |
+| 23-Aug-24 | 40-15(unstable) / 45-13(LR) / 45-15(better) | |
+| 06-Sep-24 | 40-15(unstable) / 40-15(10 better) / 40-12(cued slow tempo/better) | Cue slow tempo 12 reps at 40 |
+| 15-Sep-24 | 40-15(ok) / 45-15(ok) / 45-14(diffi) | 45s have inefficient hinge |
+| 02-Oct-24 | 40-15 / 45-12(hard cue/7.5/10) / 45-14 | |
+| 03-Dec-24 | 35-15(neat) / 40-14 / 40-15(neat) | |
+| 24-Dec-24 | 35-15 / 40-14 / 40-15 | |
+| 09-Jan-25 | 35-15 / 40-14 / 40-15 | |
+| 14-Feb-25 | 35-15 / 40-14 / 40-15 | |
+| 05-Jun-25 | 35-15(7/10) / 35-15(8.5) / 40-15 | |
+| 12-Jun-25 | 35 / 40-15 / 45-15 | |
+| 20-Aug-25 | 40-15 / 45-15 / 50-15 | |
+| 21-Sep-25 | 40-15 / 45-15 / 50-15 | |
+| 20-Feb-26 | 45 / 50 / 50 | Chest dom |
+| 14-Mar-26 | 45 / 50 / 50 | |
+
+---
+
+## Single Arm DB Row
+
+**Starting weight:** 30 lbs | **Current working range:** 45-50 lbs
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 08-Nov-22 | 30-15 / 40-14 / 45-10 | Start with 40s |
+| 21-Dec-23 | 30-12 / 35-12 / 40-8 | |
+| 05-Jan-24 | 30-12(posn not optimal) / 30-15(better cuing) / 35-15 | |
+| 13-Jan-24 | 30-15(perf) / 40-15 / 45-14(hip moving) | |
+| 26-Jul-24 | 40-15 / 50-15 / 50-15 | |
+| 25-Oct-24 | 45-15(hinge off) / 50-10(hard cue) / 50-15(better) | Opp leg in front better |
+| 26-Mar-25 | 45-15 / 50-15 / 50-15(ok) | |
+| 26-May-25 | 50-10(ok on L delt/cue to stabilize) / 50-12 / 50-12 | |
+| 03-Jul-25 | 45-15 / 50-15 / 50-15 | |
+| 10-Jul-25 | 45-15 / 50-15 / 50-15 | |
+| 07-Aug-25 | 50x3 | |
+| 06-Mar-26 | 45x3 | |
+
+---
+
+## Seated Machine Row
+
+**Current working range:** 85-115 lbs
+**Variations:** Close, wide, single arm
+
+| Date | Sets (weight-reps) | Grip | Notes |
+|------|-------------------|------|-------|
+| 22-Feb-24 | 85-15 / 85-15 / 85-15 | - | |
+| 04-Mar-24 | 85-15 / 100-9 / 90-15 | - | |
+| 24-Mar-24 | 80-12(nc) / 70-15 / 70-15 / 70-15 | - | |
+| 23-May-24 | 70-15 / 70-15 / 80-10 | - | |
+| 17-Jun-24 | 70-15 / 75-15(ok range) / 85-15(ok) | - | |
+| 15-Sep-24 | 75-15 / 75-15(hard cue better) / 75-15 | - | |
+| 25-Oct-24 | 75-15(ok) / 85-15(hard cue/better) / 90-15(ok) | - | |
+| 15-Jan-25 | 85-15 / 90-15 / 100-13 | - | |
+| 05-Feb-25 | 90-15(shaky) / 90-14(11 good) / 90-15(better) | - | Paused at 80 |
+| 14-Feb-25 | 75-15(~slow) / 85-15(ok) / 90-15(ok) | - | |
+| 20-Feb-25 | 85-15 / 100-15 / 115-10 | - | |
+| 04-Mar-25 | 30-14(mod+) / 30-15 / 40-15 | Single | |
+| 14-Mar-25 | 85-15 / 90-15(can't pause tho) / 90-15(hard cue/slower) | Lat pulldown rod | |
+| 26-Mar-25 | 90-15(hard AF at pause at 90 degree posn) / 90-15(better) / 100-15(11 only) | Close | |
+| 09-Apr-25 | 85-15 / 90-15(ok) / 90-15(unclear R by end) | - | |
+| 05-May-25 | 80-15(12 paused) / 90-15(no pause/ok) / 95-12 | - | |
+| 05-Jun-25 | 85-15 / 100-15(ok tempo) / 105-15 | - | |
+| 12-Jun-25 | 85-14(7.5/10) / 85-15(8) / 85-15(9) | Wide | |
+| 24-Jun-25 | 30-15 / 40-15 / 55-15 | Single | Working: 50/60/60 |
+| 10-Jul-25 | 85-13(RD) / 85-15(perf) / 100-15(ok) | - | |
+| 18-Jul-25 | 75-15(stability 7.5) / 75-15(8) / 85-15 | Wide | |
+| 28-Aug-25 | 85-15 / 100-15 / 115-15(8.5) | Close | |
+| 28-Aug-25 | 40-15 / 55-11(7) / 55-12 | Single | |
+| 24-Oct-25 | 70-15 / 85-15 / 90-12(7/10) | Wide | |
+| 10-Nov-25 | 70-15 / 85-15 / 90-12 | Close | |
+| 09-Dec-25 | 90 / 90 / 100 | - | |
+| 29-Dec-25 | 90 / 100-15 / 115-12 | - | Skip 90 |
+| 17-Feb-26 | 100 / 100 / 105 | - | |
+| 19-Mar-26 | 100 / 100 / 105 | - | |
+
+---
+
+## Chest Supported Row (Seated Machine)
+
+**Current working range:** 90-110 lbs
+**Seat height:** 3/2
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 20-Dec-23 | 70-15(slow) / 85-12(good/slight nc) / 85-15(sorted) / 100-12(sort) | Golds |
+| 30-Dec-23 | 60-12 / 65-15 / 70-11 | |
+| 20-Jun-24 | 65-18 / 75-15(2b) / 80-12(3b) | |
+| 27-Jun-24 | 75-15(4b) / 75-15(2b) / 75-15(same) | |
+| 16-Jul-24 | 75-15(1b) / 85-15 / 95-12(1b) | |
+| 02-Aug-24 | 80-15(3b) / 90-13(slight unev/3b) / 90-15(ok/3b) | |
+| 23-Sep-24 | 80-15(perf) / 90-15(c) / 100-15(1b) | |
+| 18-Oct-24 | 90-18(c) / 100-15(1b) / 105-12(1b) | 105 max |
+| 08-Dec-24 | 100-12(nc) / 90-15 / 100-14(3b/good comp) | Hard cue to pull slow |
+| 03-Jan-25 | 90-15(0 clean left) / 90-15 / 95-15 | |
+| 23-Jan-25 | 90-15 / 90-15 / 100-12 | |
+| 03-Jul-25 | 90-15(~paused) / 100-15(same) / 110-12 | |
+| 29-Jul-25 | 100-15 / 110-15(nc) / 110-10(c) | |
+| 20-Aug-25 | 100-15 / 110-15 / 110-10 | |
+| 05-Sep-25 | 100-15 / 110-15 / 110-10 | |
+| 14-Oct-25 | 100-15 / 110-15 / 110-10 | |
+| 31-Oct-25 | 100-15 / 110-15 / 110-10 | |
+| 01-Dec-25 | 100-15 / 110-15 / 110-10 | |
+| 22-Dec-25 | 100-15 / 110-15 / 110-10 | |
+| 11-Mar-26 | 100-15 / 110-15 / 110-10 | |
+
+---
+
+## Incline Bench Rows
+
+**Working range:** 45-50 lbs (paused)
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 09-Dec-22 | 30-15 / 40-8 / 40-6 | |
+| 26-Jan-23 | 35-13 / 35-15 / 40-8 | |
+| 09-Feb-23 | 35-15 / 35-12 / 35-15 | |
+| 21-Feb-23 | 35-13 / 35-15 / 40-15 | |
+| 12-Apr-23 | 35-15 / 35-15 / 40-12 | |
+| 02-Jan-24 | 40-10 / 40-10 / 40-7 | |
+| 18-Jan-24 | 40-15 / 45-10 / 45-12 | |
+| 02-Feb-24 | 40-12 / 40-12 / 40-15 | |
+| 03-Jun-24 | 35-15 / 40-12 / 40-15 | |
+| 03-Jul-24 | 40 / 45-15 / 45-12 / 45-12 | |
+| 13-Aug-24 | 45-12 / 50-10 / 50-12 | |
+| 09-Oct-24 | 45-15 / 50-12 / 50-12(mod+) | |
+| 18-Dec-24 | 45-15 / 50-12 / 50-12 | |
+| 20-Feb-25 | Paused: 45-8 / 45-10 / 45-10 | |
+| 24-Jun-25 | Paused: 45-15(NP) / 45-15 / 45-12 | |
+| 24-Nov-25 | Paused: 45-15 / 45-15 / 45-12 | |
+| 09-Dec-25 | Paused: 45-15 / 45-15 / 45-12 | |
+| 08-Jan-26 | Paused: 45-15 / 45-15 / 45-12 | |
+| 27-Jan-26 | Paused: 45-15 / 45-15 / 45-12 | |
+| 03-Feb-26 | Paused: 45-15 / 45-15 / 45-12 | |
+| 03-Apr-26 | Paused: 45-15 / 45-15 / 45-12 | Chest dom |
+
+---
+
+## Bent-Over Pulldown (Cable)
+
+**Attachments:** Rod, rope
+**Working range:** 45-60 lbs
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 10-Aug-22 | 15-12 / 15-12(lite) / 20-12(mod) | |
+| 21-Jan-23 | 15-15 / 20-15 / 25-12 / 20-15 | |
+| 26-Jan-23 | 20-15 / 20-15 / 25-15 | WU at 20, then 2-3 at 25 |
+| 09-Feb-24 | 40-15 / 50-15 / 60-15 | Start at 50/50/60 |
+| 27-Jun-24 | 50-16 / 55-15(better form) / 60-13 | Working: 55/55/60 |
+| 03-Jul-24 | 55-15 / 60-15 / 60-15 | |
+| 16-Jul-24 | 60-15 / 70-11 / 60-15 | |
+| 18-Oct-24 | 60-15(off) / 60-13 / 60-13 | Working: 55/55/55 |
+| 05-May-25 | 55-15(12 ok) / 60-15 / 60-15 | Unable to keep elbow bent at bottom by end |
+| 03-Jul-25 | 55-12 / 55-15(elbows go straight) / 40-15(better) | Working: 45/50/55 |
+| 20-Aug-25 | Rope: 40-12 / 40-15(ok) / 45-15 | |
+| 05-Sep-25 | Rod: 45 / 50 / 55 | |
+| 22-Dec-25 | 55 / 60 / 60 | |
+| 02-Apr-26 | 55 / 60 / 60 | |
+
+---
+
+## Smith Inverted / Bent-Over Rows
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 16-Jul-24 | 25s-15(ok) / 35s-12(L wrist gives in) / 35s-15(same) | |
+| 23-Aug-24 | Inverted rows, height: 9 | |
+| 09-Oct-24 | 15 / 12 / 10 | Same |
+| 31-Oct-25 | 15 / 12 / 10 | Same |
+| 08-Jan-26 | 15 / 12 / 10 | |
+| 27-Jan-26 | 15 / 12 / 10 | |
+
+---
+
+## DB High Pull (ss Cable Shrug / Rev Fly)
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 03-Jun-24 | 10-20 / 15-20 / 20-15 | |
+| 02-Aug-24 | ss cable shrug: 20-15(max ok/good 12) / 20-12 / 20-15 | |
+| 23-Aug-24 | ss bent-over rev fly: 20-12+15 / 20-10+14 / 20-10+12 | High pull: 15 lbs |
+| 23-Jan-25 | ss rev fly: 20/10 | |
+
+---
+
+## Shrugs (DB / Cable)
+
+**Working range:** DB 40-45 lbs / Cable 160-180 lbs
+
+| Date | Sets (weight-reps) | Variant | Notes |
+|------|-------------------|---------|-------|
+| 10-Aug-22 | 12.5-15 / 15-15 / 17.5-12 | DB | IN. Less shrug on L |
+| 24-Aug-22 | 15-13 / 15-15 | DB | IN |
+| 20-Sep-22 | 30-15 / 35-12 / 35-15 | DB | US |
+| 03-Oct-22 | 35-15 / 35-13 / 35-10 | DB | Hard reps for 12/12/10 |
+| 11-Oct-22 | 35-15 / 35-12 / 35-12 | DB | |
+| 18-Oct-22 | 35-15 / 35-15 / 40-12 | DB | |
+| 24-Nov-22 | 35-15 / 40-14 / 40-15 | DB | IN |
+| 21-Dec-22 | 40-12 / 40-14 / 40-12 | DB | |
+| 21-Jan-23 | 40-17 / 40-15 / 45-15 | DB | |
+| 02-Feb-23 | 45-15 / 45-15 / 45-15 | DB | |
+| 10-Apr-23 | 120-13 / 120-12 / 120-12 | Cable | |
+| 05-Jan-24 | 45-14 / 45-12 / 45-12 | DB | Start at 40s |
+| 06-Feb-24 | 110-15 / 110-15 | Cable | Better engage, free wt practice |
+| 13-Feb-24 | 110-20 / 120-17 / 130-15 | Cable | |
+| 19-Feb-24 | Behind: 110-20 / 130-20 / 150-20 | Cable | Start at 130 |
+| 20-Jun-24 | 140-20 / 160-18 / 180-12 | Cable | |
+| 02-Aug-24 | 160-12(LR) / 150-15 / 150-15 | Cable | Working: 140/150/150 |
+| 13-Aug-24 | 140-20 / 150-20 / 160-20(low by end) | Cable | |
+| 06-Sep-24 | Slow, ss rev fly: 40-15 / 40-15 / 40-15 | DB | |
+| 15-Jan-25 | ss Rev Fly: 40-15 | DB | 25 for shrugs |
+| 05-May-25 | 80-wu / 160-15 / 170-10 / 170-10 | Cable | 170 heavy |
+| 31-Oct-25 | 80-wu / 160-15 / 170-15 / 180-15 | Cable | |
+| 10-Nov-25 | DB | DB | |
+| 19-Mar-26 | 80-wu / 160-15 / 170-15 / 180-15 | - | |
+| 02-Apr-26 | 80-wu / 160-15 / 170-15 / 180-15 | - | |
+
+---
+
+## Back Extension (Machine)
+
+**Working range:** 110-125 lbs
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 29-Jul-25 | 120-15 / 110-15 / 110-15 | 110 is ok |
+| 01-Dec-25 | 120-15 / 125-15 / 125-15 | |
+| 01-Mar-26 | 125x3 | Working: 115/120x2 |
+
+---
+
+## Bent-Over DB Fly
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 20-Feb-25 | 20-15 / 25-15 / 25-15 | |
+| 14-Mar-25 | 25-15 / 25-12 / 25-12 | |
+| 05-Jun-25 | 25-15 / 25-12 / 25-12 | |
+| 10-Jul-25 | 20 / 25-15 | |
+| 22-Aug-25 | 20 / 25-15 | |
+| 24-Nov-25 | 20 / 25-15 | |
+| 12-Feb-26 | Legs+Delt | |
+| 02-Apr-26 | 20 / 25-15 | |
+
+---
+
+## Machine Reverse Fly (Back Day)
+
+**Working range:** 65-80 lbs
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 30-Dec-23 | 50-12(heavy) / 40-15(elbow under delt) / 40-15 | Start at 35 |
+| 30-Jan-24 | 35-15(elbow off) / 35-15 / 35-15 | Try 30 first |
+| 24-Feb-24 | 40/45/50-15/15/15 | |
+| 04-Mar-24 | 50-15 / 55-15 / 60-15(drop) | |
+| 23-May-24 | 55-12(nc) / 45-15(better) / 50-12 | |
+| 10-Jun-24 | 45-15(struggle) / 45-15 / 45-15 | |
+| 03-Jul-24 | 40-18(perf arm posn) / 45-18(torso off in few) / 50-18(good/diffi) | |
+| 26-Jul-24 | 40-15(perf) / 50-15 / 60-18 | Working: 60/60/80 |
+| 02-Oct-24 | 60-14(elbow locked) / 60-15(13) / 60-15 | |
+| 09-Oct-24 | 60-18(hard cue/better elbow) / 65-15(sorted) / 65-15 | |
+| 21-Nov-24 | 65-18 / 70-18(ok) / 75-11(elbow ok/R delt goes up) | |
+| 01-Dec-24 | 70-15 / 75-15 / 80-15 | Same |
+
+---
+
+## Assisted Pull-Ups
+
+| Date | Sets (reps) | Notes |
+|------|------------|-------|
+| 11-Jan-23 | 150 assist: 12 / 10 | Golds |
+
+---
+
+## Dead Hang
+
+| Date | Duration | Notes |
+|------|----------|-------|
+| 08-Aug-22 | 60 sec | IN |
+| 26-Jan-23 | 30 sec | |
+| 07-Feb-23 | 32 sec | |`,
+
+legs: `# Leg Exercises
+
+> **Format:** \`date: weight(lbs/kg)-reps/reps/reps\` | Parenthetical notes are trainer cues/observations
+> **Abbreviations:** nc=non-continuous, c=continuous, LR=low range, RD=range drop, HS=hip shift, ||=parallel, mod=moderate, perf=perfect, drop=drop set, LB/LBp=low back pump, bw=bodyweight, wu=warm-up, s=side (Smith plates)
+
+---
+
+## Wider Stance Squat (Goblet / DB Pair / Smith)
+
+**Starting weight:** 6 kg pair | **Current working range:** Smith 40s-60s
+
+| Date | Sets (weight-reps) | Variant | Notes |
+|------|-------------------|---------|-------|
+| 18-Aug-22 | 6kg pair: 15/15/15 | DB | Torso rotates anti-clock, R delt shrugs |
+| 06-Jan-23 | bw-20 / 16-15 / 16-15 / 16-15 | Goblet | |
+| 12-Jan-23 | bw-15(slight pinch since extn) / 30-12(pinch since 6th, incr to 5/10) / 30-15(4/10 max) | Goblet | |
+| 23-Jan-23 | bw-15(no pinch) / 30-15(no pinch) / 35-15 | Goblet | |
+| 30-Jan-23 | bw-15 / 30-15(very slight) / 35-15 / 40-15 | Goblet | |
+| 11-Feb-23 | bw-15 / 30-15(2/10) / 40-15(same) / 45-15 | Goblet | |
+| 22-Feb-23 | bw-15(3/10) / 30-15(2/10) / 40-15 / 40-15 | Goblet | |
+| 31-Dec-23 | 30-15 / 40-15 | Goblet | R knee micro unstable, no pain |
+| 08-Jan-24 | 35-12(4/5) / 45-15 / 60-15 | Goblet | |
+| 15-Jan-24 | 60-15 / 60-15 / 60-15 | Goblet | |
+| 23-Jan-24 | 60-15 / 60-15 / 60-15 (got 15 temp descent at 3rd) | Goblet | |
+| 31-Jan-24 | 60-15 / 60-15 / 60-15 | Goblet | |
+| 13-Mar-24 | 60-15 / 60-15 / 60-15 | Goblet | |
+| 27-Mar-24 | 60-15 / 60-15 / 60-15 | Goblet | |
+| 11-Jun-24 | bw / 45-15 / 45-15 / 45-15 | Goblet | |
+| 22-Jun-24 | 50-15 / 50-16 / 50-18(no knee) | Goblet | |
+| 18-Jul-24 | empty / 25s-15 / 35s-15(micro range drop end) / 45s-8(drop) | Smith | |
+| 27-Jul-24 | empty(uni) / 35-15(got uni parallel last 4-5 reps) / 45s-15(hard cue for range) | Smith | |
+| 15-Aug-24 | 25s-15(good) / 35s-15(slight shaky) / 45s-15(good/ok range all) | Smith | |
+| 03-Sep-24 | 25s-15 / 35s-15 / 45s-15 | DB | |
+| 12-Sep-24 | 25s-15 / 35s-15 / 45s-15 | DB | |
+| 07-Oct-24 | 35s-15(wavy bottom) / 45s-15(hard cue/great comp at descent) / 45s-13 | Smith | |
+| 16-Oct-24 | 35s-12(LR/off) / 25s-15(off/LR) / 25s-15(only slightly better) | Smith | Back to 25s first |
+| 19-Nov-24 | 40-15 / 50-15 / 50-15 | Goblet | |
+| 26-Nov-24 | 50-15(uneven) / 50-15(ok) / 50-15(sorted range) | Goblet | |
+| 05-Dec-24 | 25s-15(super neat) / 35s-15(best so far) / 45s-15(|| range/consistent AF) | Smith | Post bw + empty bar |
+| 20-Dec-24 | 25s-15 / 35s-15 / 45s-15 (really off for M) | Smith | |
+| 31-Dec-24 | 25s-14(better, still not clear ||) / 25s-15(perf range unlock) / 35s-15(ok) | Smith | Hard cue for tight feet |
+| 10-Jan-25 | 25s-15(better) / 35s-15(few HS/good control) / 40s-15(ok) | Smith | Cue: tightness from standing pre descent |
+| 17-Jan-25 | 25s-15 / 40s-15(hard cue/ok) / 50s-15(perf) | Smith | |
+| 30-Jan-25 | 25s-12(sort) / 50s-12(no HS/good comp) / 60s-10(good comp) | Smith | |
+| 07-Feb-25 | 25s-12 / 60s-12(|| max/no HS/good comp) | Smith | |
+| 24-Feb-25 | 25s-15 / 35s-15 / 40s-13(range drop/slight shaky) | DB pair | LB pump for both (low to mod at end) |
+| 06-Mar-25 | 50-15(inconsistent) / 50-15(slightly better) / 50-15(ok) | Goblet | |
+| 21-Mar-25 | 50-15 / 50s-15(nc/good comp/no HS) / 60s-7(ok) | Smith | |
+| 03-Apr-25 | 50-15 / 60s-15(LB/great comp/|| max range) | Smith | Working: 35/50/60s |
+| 07-May-25 | 35s-15 / 55s-12(mod+) / 60s-10(<||)(hard) | Smith | |
+| 20-May-25 | 50-15x4 | Goblet+elevation | Post hamstring episode |
+| 29-May-25 | 25s / 35s-12 / 35s-12(very mild) | DB pair | L inner leg increase from yesterday walk |
+| 07-Jun-25 | 35s-14(LR by end) / 35s-15(sort) / 45s-12(ok range) | DB pair | Much better hamstring, micro only sensation at hinge |
+| 17-Jun-25 | 35s-14 / 35s-15(9/10/LB pump tho) / goblet heel elev: 70-8/7 | DB pair | |
+| 05-Jul-25 | 45-15(|| max) / 45-15(better range/torso drop) | Goblet heel elev | |
+| 14-Jul-25 | - | Smith | M did lunges |
+| 24-Jul-25 | 35s-15(8.5/10 stable) / 45s-15(mod+/9/10) / 55s-12(9/10) | Smith | |
+| 14-Aug-25 | 35s-15 / 45s-15 / 55s-12 (slight LB pump) | Smith | |
+| 27-Aug-25 | 35s-15 / 50s(9/10) / 60s-10(8/10) | Smith | |
+| 09-Sep-25 | 35s-15 / 50s / 60s-10 | - | |
+| 16-Oct-25 | 35s-15 / 50s / 60s-10 | Goblet | |
+| 30-Oct-25 | 35s-15 / 50s / 60s-10 | Smith wide | 50s max for wide |
+| 06-Nov-25 | 35s-15 / 50s / 60s-10 | Conv | |
+| 27-Nov-25 | 40s / 50s | - | |
+| 28-Dec-25 | 40s / 50s-12 / 57.5s-12(diffi+) | - | |
+| 15-Jan-26 | Goblet | Goblet | |
+| 12-Feb-26 | Smith | Smith | |
+
+---
+
+## Leg Extension
+
+**Starting weight:** 100 lbs | **Current working range:** 180-200 lbs
+**Knee history:** L knee pinch managed by starting lighter and using non-cont reps
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 05-Oct-22 | 100-15 / 100-15(mod to heavy by end) / 100-15 | |
+| 14-Oct-22 | 100-11 / 100-11 / 100-12 | |
+| 21-Oct-22 | 90-15 / 90-12(L shin slight discomf) / 90-13 / 90-5(shin pain 5/10) | Initiate at 80, keep 3 sets only |
+| 02-Nov-22 | 80-15(3b) / 80-15(nc) / 80-12(slight pinch L knee 5/10) | Keep 80s, nc reps for knee ease |
+| 21-Nov-22 | 70-12(slight pinch L) / 60-14(very little post 10) / 60-15(no pinch) | IN |
+| 25-Nov-22 | 50-12(slow) / 55-15(slight pinch by 8th minor) / 55-15 | IN |
+| 17-Dec-22 | 70-15 / 70-15 / 70-12(drop at 60) | IN |
+| 22-Dec-22 | 70-15(nc/very slight pinch) / 70-15(cont/lesser) / 70-15(2/10) / 80-15(1b) | |
+| 06-Jan-23 | 50-15(mod to lite) / 60-15(mod) / 65-15(3b) | |
+| 12-Jan-23 | 50-12(light but 2/10 pinch) / 55-15 / 65-15(slight pinch ok/lite) | |
+| 23-Jan-23 | 45-15(3/10 pinch) / 45-15 / 45-15 | |
+| 30-Jan-23 | 45-15(1/10 post warmup) / 45-15(same) / 52.5-15(same/2/10) | |
+| 03-Feb-23 | 45-15(slight pinch) / 52.5-15(little lesser) / 60-15(very minor) | |
+| 11-Feb-23 | 45-15 / 52.5-15(nothing today) / 60-15(very minor last reps) | |
+| 22-Feb-23 | 45-15(very minor) / 52.5-15(nothing) / 60-15 / 60-15(nothing) | |
+| 10-Jan-24 | 80-15(lite) / 100-15(mod to heavy) / 110-15(no pinch) / 110-15 | |
+| 19-Jan-24 | 90-15(felt lite) / 110-15(8) / 130-15(2) | WU at 90, start 120/130/140 |
+| 26-Jan-24 | 90-wu / 120-18 / 130-15 / 140-15 | |
+| 03-Feb-24 | 90-wu / 120-18 / 130-15 / 140-15 (micro discomf R knee at lock, lesser when didn't lock) | |
+| 12-Feb-24 | 90-wu / 130-18(slight knee from tennis) / 140-12+6 | |
+| 20-Feb-24 | 90-wu / 130-18(micro on R) / 140-18(lesser) / 150-18(no sensation) | |
+| 29-Feb-24 | 90-wu / 130-18 / 140-18 / 150-18 | |
+| 13-Mar-24 | 90-wu / slight pinch at 1st / knee exerted from weekend -> shifted to RDL | |
+| 27-Mar-24 | 90-wu / 130-18 / 140-18 / 150-18 (micro pinch R knee) | |
+| 11-Jun-24 | wu-80 / 130-15(micro pinch) / 130-15(nothing) / 140-15 | |
+| 22-Jun-24 | wu-80 / 130-15 / 130-15 / 140-15 (no pain, 140 has range drop by end) | |
+| 30-Jun-24 | wu-80 / 130-15(slight varying/control 7/10) / 130-15(high control) / 130-12(hard cue) | Working: 120/130/130 |
+| 12-Jul-24 | 80 / 120-18(reports breathing obstruction by end) / 130-18 / 140-15 | |
+| 18-Jul-24 | 130-18 / 140-15(hard cue for uni range/diffi at 140) / 140-15(not max range) | 140 max, hard cue for uni range |
+| 27-Jul-24 | 130-20 / 140-18(ok) / 150-12(drop) | |
+| 06-Aug-24 | 130 / 140 / 150 x4 | |
+| 15-Aug-24 | 140-20(ok) / 150-18 / 160-15(ok) | |
+| 03-Sep-24 | 150-18 / 160-15(dropping range by end) / 160-13(ok tempo but range drop) | Nothing on hamstring or knee |
+| 12-Sep-24 | 150-18 / 170-15(11 good range) | |
+| 20-Sep-24 | 150-18 / 170-15 | |
+| 30-Sep-24 | 150-18 / 170-15 | |
+| 07-Oct-24 | 150-18 / 170-15 (slight back of L knee pinch at extension, injury point) | Had med running over weekend |
+| 16-Oct-24 | 150-20(8/10) / 160-15 / 160-15(LR) | Cue not to speed at ascent |
+| 23-Oct-24 | 150-18(uneven) / 150-15(ok/hard cue) / 150-15 | |
+| 22-Nov-24 | 150-18 / 150-15 / 150-15 | |
+| 02-Dec-24 | 150-18 / 160-15 / 170-12 | Side view showed perf execution |
+| 26-Dec-24 | 160-18 / 170-15 / 180-13 | |
+| 10-Jan-25 | 170-15 / 170-15 / 170-15 | |
+| 17-Jan-25 | 170-15 / 170-15 / 170-15 | |
+| 30-Jan-25 | 170-15 / 170-15 / 170-15 | |
+| 07-Feb-25 | 170-15 / 170-15 / 170-15 | |
+| 24-Feb-25 | 170-15 / 170-15 / 170-15 | |
+| 06-Mar-25 | 170-18 / 180-15 / 180-12 | Cue to finish bottom end range for M |
+| 21-Mar-25 | 170-18 / 180-15 / 180-12 | |
+| 03-Apr-25 | 170-18 / 180-15 / 180-12 | Working: 180/190/200 |
+| 20-May-25 | 180-15 / 190-15 / 190-15 | Slight L ham sensation at top of rep |
+| 29-May-25 | 180-15 / 190-15 / 190-15 | |
+| 07-Jun-25 | 180-15 / 190-15 / 190-15 | |
+| 17-Jun-25 | 180-15 / 190-15 / 190-15 | Working: 190/200 |
+| 27-Jun-25 | 180-15 / 190-15 / 190-15 | |
+| 05-Jul-25 | 180-15 / 190-15 / 190-15 | |
+| 14-Jul-25 | 180-15 / 190-15 / 190-15 | |
+| 24-Jul-25 | 180-15 / 190-15 / 190-15 | |
+| 14-Aug-25 | 190x3 | |
+| 27-Aug-25 | 190x3 | |
+| 23-Sep-25 | 190x3 | |
+| 16-Oct-25 | 190x3 | |
+| 30-Oct-25 | 190x3 | |
+| 27-Nov-25 | 190x3 | |
+| 06-Dec-25 | Hard cue at 150: 150-18(ok) / 170-15 / 170-12 | Cue for M to lift highest up at no weight first, restart at 150 |
+| 18-Dec-25 | 160 / 170 / 170 | |
+| 28-Dec-25 | 160 / 170 / 170 | |
+| 29-Jan-26 | 160 / 170 / 170 | |
+| 06-Feb-26 | 160 / 170 / 170 | |
+| 18-Feb-26 | 160 / 170 / 170 | |
+| 05-Mar-26 | 160 / 170 / 170 | |
+| 17-Mar-26 | 160 / 170 / 170 | |
+
+---
+
+## Smith Hip Thrust
+
+**Starting weight:** empty bar | **Current working range:** 90s-115s
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 30-Oct-25 | empty / 10s-15 | |
+| 27-Nov-25 | 25s-25 / 35s-15 / 45s-15 | |
+| 06-Dec-25 | 35s / 50s-16 / 60s-15 | |
+| 18-Dec-25 | 45s / 70s-15 / 95s-13 | |
+| 04-Jan-26 | 55s / 90s-15(mod+) / 105s-15 | |
+| 15-Jan-26 | 60s / 90s / 115s-15 | |
+| 06-Feb-26 | 70s | |
+| 12-Feb-26 | 70s / 105s / 105s | |
+| 18-Feb-26 | 70s / 105s / 105s | |
+| 14-Mar-26 | 70s / 105s / 105s | |
+| 07-Apr-26 | 70s / 105s / 105s (hard cue zero jerk) | |
+
+---
+
+## Hamstring Curl (Lying / Seated)
+
+**Shin/foot/seat adjustment:** 6/3/6 (or 6/1/1)
+**Starting weight:** 50 lbs | **Current working range:** 130-150 lbs
+
+| Date | Sets (weight-reps) | Variant | Notes |
+|------|-------------------|---------|-------|
+| 05-Oct-22 | 75-13 / 75-11 / 60-fatigued | Lying | Foot adjustment. Start with 60 |
+| 14-Oct-22 | 60-13 / 60-12 / 60-11 | Lying | |
+| 02-Nov-22 | 50-15 / 60-15(b) / 60-10 | Lying | |
+| 21-Nov-22 | 50-14 / 50-14 / 55- | Lying | IN |
+| 25-Nov-22 | 50-15 / 60-15 / 65-8(drop at 55) | Lying | IN |
+| 17-Dec-22 | 50-15 / 60-15 / 65-4(drop at 55/40) | Lying | |
+| 22-Dec-22 | 60-15(nc) / 60-12 / 60-8(drop at 50) | Lying | |
+| 06-Jan-23 | 30-10 / 30-12 / 30-12 | Lying | |
+| 12-Jan-23 | 32.5-12(nc) / 35-12 / 50-10(3b) | Lying | Start at 30/13.5 or 30(+10) |
+| 03-Feb-23 | 45-11 / 37.5-9 / 30-12 | Lying | Start at 30s |
+| 22-Feb-23 | 30-15 / 37.5-14 / 45-7(drop) | Lying | |
+| 30-Dec-23 | 120-15 / 130-15 / 135-12 | Lying | |
+| 07-Feb-24 | 120-15(mod) / 130-15(range off by end) / 120-15 | Seated | |
+| 31-May-24 | 120-15(nc) / 110-15(c/compensatory) / 100-15 | Seated | |
+| 05-Jun-24 | 100-18 / 110-20(form not best) / 120-12(max/nc) | Seated | |
+| 18-Jun-24 | 100-20 / 120-18(nc) / 120-16(hard cue/more c) | Seated | |
+| 30-Jun-24 | 120-18(c) / 130-18(12 deep/mod max feel) / 140-14(hip unstable) | Seated | |
+| 18-Jul-24 | 120-20(c/mod+ feel) / 130-18(c/hip unstable all sets) / 130-15(hard cue/nc/better hip) | Seated | Pull down without any speed, no jerk to kick off set |
+| 15-Aug-24 | 120-20(ok) / 130-20(c) / 140-16(2b) | Seated | Start at 130 |
+| 30-Sep-24 | 130-18(setup) / 140-15(3b) / 130- | Seated | Start at 120 |
+| 07-Oct-24 | 120-20(LR/mod to lite) / 130-17(micro pinch L ham insertion) / 130-15(slight increase) | Seated | |
+| 05-Dec-24 | off | - | |
+| 24-Feb-25 | Posn 6/3/6: 70-wu / 130-13 / 130-12(foot off/range drop) / 120-12(LR) | Seated | Working: 110/120/120 paused+high range |
+| 06-Mar-25 | 110-15(HR/low control) / 120-15(ok) / 130-14 | Seated | |
+| 03-Apr-25 | 110-15 / 120-15 / 130-14 | Seated | Working: 120/130/140 force tempo |
+| 07-May-25 | 120 / 130 / 140-15 | Seated | Working: 130/140/150 |
+| 07-Jun-25 | ISO: 70-<90: 30s, 120: 30s(easy) / 85-<90: 25-30s | ISO | Moved to med ball bridge rehab wrapper |
+| 17-Jun-25 | ISO: 85-90: 40s/120: 40s/175: 40s & 90-90: 30s/120: 30s/175: 30s | ISO | Working ISOs: 90/100 |
+| 27-Jun-25 | 120-15 / 130-15(7.5/10) / 130-12 | Seated | Switched from extn (machine sucked), adj 1/2/1 |
+| 05-Jul-25 | 120-15(8/10/hip moving) / 120-15(stable) / 120-15(only slightly better) | Seated | Adj 6/3/6 |
+| 14-Aug-25 | 120-15 / 130-15(nc/max load) / 130-12 | Seated | |
+| 27-Aug-25 | ISO: 90-90/120: 30s/175: 30s & 110-90/120: 30s/175: 30s | ISO | |
+| 06-Nov-25 | 130-16 / 140-13 / 150-13 | Seated | |
+| 21-Nov-25 | 130-16 / 140-13 / 150-13 | Seated | |
+| 04-Jan-26 | 140 / 150-16 / 150-12 | Seated | |
+| 29-Jan-26 | 140 / 150-16 / 150-12 | Seated | |
+| 05-Mar-26 | 140 / 150-16 / 150-12 | Seated | |
+| 17-Mar-26 | wu at 100: 140-12(nc all/5/10) / 130-15(6/10) / 130-9(drop) | Seated | Working: 80/110/110/120 |
+| 07-Apr-26 | wu at 100 / 120 / 130 | Seated | |
+
+---
+
+## Lunge (DB / Smith / BW)
+
+**Current working range:** DB 25-30 lbs / Smith 10s-15s
+**Note:** Start R leg back always
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 31-Jan-24 | bw: 12(slight discomf R knee) / 15(less/cued for weight on L leg) / 15 | |
+| 20-Sep-24 | bw: 15(pain free) / 15-15(ok) / 15-15(LR) | Working: 10/15/15. 15s shaky when R leg in front. Knee sorted |
+| 23-Oct-24 | 10-10(ok) / 15-12 / 20-12 | |
+| 17-Jan-25 | 15-12(shaky ascent) / 15-12(better) / 15-12 | Working: 15/20/20 |
+| 30-Jan-25 | 20-12(off balance) / 20-12 / 20-12(better) | |
+| 24-Feb-25 | Single: 20-12 / 20-12 / 25-12 | |
+| 21-Mar-25 | Single: 20-12 / 20-12 / 30-12(torso needs more control) | Working: 25/30/30 |
+| 07-May-25 | Single: 20-12 / 20-12 / 30-12 (30 max for R rev L front) | |
+| 20-May-25 | Post ham episode: L leg fwd has ham sensation (skipping) | |
+| 21-May-25 | Single: 15-14 / 20-12(smooth/L wrist sudden pain up) / bw for L | |
+| 29-May-25 | 25-8(increase ham by end, L fwd) / 25-12(lesser at bw for L leg) / 25-12 | |
+| 07-Jun-25 | bw-15 / 25-15(almost no ham/LB pump tho) / 25-13 | |
+| 17-Jun-25 | 25-15(micro max ham) / 30-15 / 35-12 | |
+| 27-Jun-25 | 30-15 / 35-15(LB pump) / 35-12(3) | Working: 15/20/25 |
+| 05-Jul-25 | Smith: 5s-12(3/LR) / 5s-12 | Post BW squats |
+| 14-Jul-25 | - | Smith |
+| 24-Jul-25 | Smith: 5s-12 / 5s-12 | |
+| 27-Aug-25 | 30-15(9.5/10) / 35-14(8/10) / 40-10(8.5/10) | |
+| 09-Sep-25 | Smith | |
+| 23-Sep-25 | bw / 7.5s / 10s | |
+| 30-Oct-25 | Smith: 5s-12 / 15s-11 / 15s-10 | |
+| 21-Nov-25 | Dynamic: bw | |
+| 06-Dec-25 | 10s / 15s / 15s | Start R leg back always |
+| 18-Dec-25 | L knee pinch | |
+| 04-Jan-26 | DB static: 15/20/20-15 | |
+| 15-Jan-26 | Dynamic | |
+| 29-Jan-26 | Static double: 15s / 25s-10(2/10 L knee, 20s N/A) | |
+| 06-Feb-26 | Smith | |
+| 05-Mar-26 | Double | |
+| 28-Mar-26 | Double: 15/25/25 | |
+| 07-Apr-26 | Dynamic | |
+
+---
+
+## RDL (Romanian Deadlift)
+
+**Starting weight:** 7.5 lbs | **Current working range:** DB 45-50 lbs / Smith 35s-50s
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 10-Aug-22 | 7.5-10 / 7.5-10 / 7.5-10(lite) | IN |
+| 24-Aug-22 | 10-12 / 12.5-12 / 15-12 | |
+| 31-Aug-22 | 12.5-12 / 15-12 / 15-12 | |
+| 21-Sep-22 | 30-12 | US |
+| 28-Sep-22 | 30-12 / 35-12 / 40-12(5) | Start with 35s |
+| 21-Oct-22 | 35-15 / 40-12 / 45-12 | |
+| 17-Dec-22 | 40-10 / 35-8 | Start with 35s |
+| 23-Jan-23 | 35-15 / 35-15 / 40-15 | |
+| 30-Jan-23 | 35-15 / 45-12 / 45-12 | |
+| 02-Feb-23 | 40-14 / 45-12 / 45-15 | |
+| 12-Apr-23 | 35-15 / 35-10 / 35-12 | |
+| 21-Dec-23 | 30-12 / 35-12 / 35-12 | |
+| 03-Jan-24 | 35-12 / 40-12 / 40-12 | |
+| 19-Jan-24 | 35-12 / 45-12 / 50-10 | |
+| 26-Jan-24 | 45-12 / 50-10 / 50-12 | |
+| 03-Feb-24 | 45-12 / 50-10 / 50-12 (grip slip at 50) | |
+| 12-Feb-24 | 45-12 / 50-10 / 50-12 | |
+| 29-Feb-24 | 45-12 / 50-10 / 50-12 | |
+| 12-Jul-24 | 45-12 / 50-10 / 50-12 | |
+| 27-Jul-24 | Smith: empty / 25s-15(non-uni) / 35s-15(better/slow) / 45s-15(uni range/HS right at bottom) | |
+| 06-Aug-24 | DBs: 45-12 / 50-10 / 50-12 | |
+| 15-Aug-24 | 45-12 / 50-12(ok) | Cue for slow at 45s |
+| 20-Sep-24 | 45-15 / 50-15(good comp/R lean) / 50-15(good form/high L pump) | |
+| 30-Sep-24 | 45-15(speedy/under control) / 50-15(sorted) / 50-15(slight shaky) | Cue for tighter upper mid back |
+| 16-Oct-24 | 45-15 / 50-15 / 50-15 | M needs hard cue on tempo |
+| 23-Oct-24 | 45-15 / 50-12 / 50-12 | |
+| 22-Nov-24 | 45-15 / 50-12 / 50-12 | Mixed |
+| 02-Dec-24 | 45-15 / 50-12 / 50-12 | Only very mild lumbar feels, perf form. 45/50 max |
+| 26-Dec-24 | 45-15 / 50-12 / 50-12 | |
+| 30-Jan-25 | 45-15 / 50-12 / 50-12 (low vol today) | |
+| 06-Mar-25 | Single: 40-12(off) / 40-12(off) / 30-12 | Working: 30 |
+| 14-Jul-25 | Single: 40-12 / 40-12 / 30-12 | |
+| 24-Jul-25 | 35-15(9/10) / 45-15(8.5/10) | |
+| 31-Jul-25 | 40-15 / 45-14 / 50-13 | |
+| 09-Sep-25 | 45 / 50 / 50 | |
+| 23-Sep-25 | Smith: 35s-12 / 45s-8 / 45s-12 | |
+| 21-Nov-25 | Smith: 35s-12 / 45s-8 / 45s-12 | |
+| 18-Dec-25 | Smith: 35s / 45s-14 / 50s-12 | Body starts swaying back by end |
+| 28-Dec-25 | DB | |
+| 29-Jan-26 | Smith: 35s / 45s / 45s | Working: 35s/40s/40s |
+
+---
+
+## Leg Press
+
+**Current working range:** 180-220 lbs
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 14-Feb-24 | 150-15(micro knee pinch both) / 150-16(lesser) / 160-15(no pinch) | |
+| 13-Mar-24 | 70-wu / 150-15(no pinch) / 160-15 / 170-15 | |
+| 27-Mar-24 | 70-wu / 150-15 / 160-15 / 170-15 | |
+| 05-May-24 | 70-wu / 120-15 / 130-15(hard/max/micro pinch) / 120-15 | |
+| 18-Jun-24 | 70-wu / 140-15(ok/diffi) | |
+| 30-Jun-24 | Seat goes back: 70 / 130-20 / 150-15 / 150-15 | |
+| 18-Jul-24 | Seat goes back: 150-15(unstable) / 150-15(sorted) | |
+| 06-Aug-24 | Seat goes back: 150-20(ok) / 160-18 / 170-18(slight low range) | |
+| 12-Sep-24 | 100-wu / 160-15(shaky) / 170-15(inconsistent) / 170-15(slight better) | Hams almost ok |
+| 07-Oct-24 | 160-18 / 170-18(LR) / 180-18(better) | Working: 170/180/190, hard cue |
+| 24-Oct-24 | 170-16 / 180-18(hip moving off) / 180-15(hard cue/8.5/10) | |
+| 10-Jan-25 | 170-16 / 190-12(LB pump) | |
+| 07-Feb-25 | 170-16 / 190-15(no pump) | |
+| 27-Jun-25 | Foot moves, seat 3/9: 150-15 / 160-15 / 175-12 | |
+| 31-Jul-25 | Seat 1/3: 170-15 / 180-15 / 190-13 | |
+| 23-Sep-25 | 180-15 / 200-15 / 210-12 | |
+| 16-Oct-25 | Single: 90-12 / 100-12 / 100-12 | |
+| 21-Nov-25 | 200-15 / 220-12 / 220-15 | |
+| 18-Feb-26 | 200-14(inconsistent) / 200-15(9/10) / 220-14 | |
+| 17-Mar-26 | 180(cued cont)-15(only 6 c reps) / 180-15(9 c reps) / 200-14 | Ham curl sucked today, scaling down |
+| 28-Mar-26 | 180 / 190 / 200 | |
+| 07-Apr-26 | 180 / 190 / 200 | |
+
+---
+
+## Hip Thrust (DB / Barbell)
+
+**Starting weight:** BW | **Peak:** 60 lbs
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 10-Aug-22 | 12 / 15 / 15 | IN |
+| 24-Aug-22 | 15 / 20 / 20 | IN |
+| 21-Sep-22 | 20 / 25db-20 / 25db-20(RIR 5) / 35-20(RIR 0) | US. Start with 35s/ROD |
+| 28-Sep-22 | 35-20(slight discomf knee minor) / 35-15 / 35-15 | |
+| 22-Dec-22 | Single DB 35-20 / 35-20 / 45-20 / 55-20 | Start with 45 |
+| 23-Jan-23 | bw-20 / 45-20 / 45-20 / 45-20 | |
+| 03-Feb-23 | Staggered: bw-10 / 30-13 / 20-12(only back engage no glutes) / normal 45-20(some glute) | |
+| 21-Dec-23 | 40-15(firm ok/feels low) / 50- | |
+| 08-Jan-24 | bw-5-7 / 50-15(40 back/60 glute) / 50-15(low back pump) / 60-13(3-5)(LB pump/glutes engage lesser) | |
+| 15-Jan-24 | bw-5-7 / 60-15 / 60-15(better feels) / 60-15(heel micro lifts) | |
+| 23-Jan-24 | bw-5-7 / 60-15 / 60-15 / 60-15 | |
+| 31-Jan-24 | Floor bridge: paused | |
+| 07-Feb-24 | thrust: bw-5-7 / 60-15 / 60-15 / 60-15 | |
+| 14-Feb-24 | bw-5-7 / 60-15 / 60-15 / 60-15 | |
+| 29-Feb-24 | bw-5-7 / 60-15 / 60-15 / 60-15 / staggered | |
+
+---
+
+## Calf Raises
+
+| Date | Sets (weight-reps) | Variant | Notes |
+|------|-------------------|---------|-------|
+| 12-Jul-24 | 5s-20(ok) / 10s-15(LR) / 10s-18(LR) | Smith | |
+| 15-Aug-24 | 10s-20 / 15s-20(ok) / 15s-15 | Smith | 2 plate elevation |
+| 03-Sep-24 | 15s-20 / 15s-18(14 clean) / 15s-15(not great range) | Smith | Crappy plates but manageable |
+| 30-Sep-24 | 90-18 / 110-15 / 110-15 | Leg press | |
+| 27-Nov-25 | 110-18 / 130-17 / 150- | Straight leg seated machine | |
+
+---
+
+## Hyperextension
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 31-May-24 | 15 / 14 / 14 | Extension misses by end, better feel tho |
+| 30-Jun-24 | 15 / 15 / 15(ok) | |
+| 12-Jul-24 | 15(ok) / 10-15 / 25-15 | |
+| 18-Jul-24 | 25-15 / 35-11 / 35-12 | |
+| 23-Oct-24 | 10-15 / 25-12 / 25-12 | |
+| 19-Nov-24 | bw | |
+| 26-Nov-24 | bw | |
+| 24-Feb-25 | 15-12 / 15-11 / 15-10 | |
+| 06-Feb-25 | 15-12 / 20-15 | |
+| 03-Apr-25 | 20 / 25 / 30-15 | |
+| 07-May-25 | 25 / 30 / 35 | |
+| 20-May-25 | 25 / 30 / 35 | |
+| 29-May-25 | 25 / 30 / 35 | |
+| 05-Jul-25 | 30-15 / 30-15 | |
+| 22-Dec-25 | 25-15 / 25-13 | |
+| 12-Feb-26 | 25-15 / 25-13 | |
+
+---
+
+## Cossack Squat
+
+| Date | Sets | Notes |
+|------|------|-------|
+| 18-Feb-26 | - | |
+
+---
+
+## Copenhagen (Adductor)
+
+| Date | Sets (reps) | Notes |
+|------|------------|-------|
+| 18-Jul-24 | bw-15 / 15 / 15 | |
+
+---
+
+## Wall Sit
+
+| Date | Sets (weight-duration) | Notes |
+|------|----------------------|-------|
+| 26-Aug-22 | 1:30 / 1:10 / 1:15 | |
+| 05-Sep-22 | 10-2:19 / 15-1:37 | |
+| 21-Sep-22 | 35-1:30 / 45-1:30 / 45-1:47 | US |
+| 28-Sep-22 | 45-2:10 / 45-1:31 / 45-1:39 | Superseted with BW sumo squat |
+| 14-Oct-22 | 45-2:30 / 45-1:22 / 45-3:05 | Superset with sumo squat |
+| 02-Nov-22 | 45-1:49 | Sumo squat: pinching pain L knee 6/10 |
+| 10-Jan-24 | 30-1:38 / 45-1:44 / 60-1:45 | |
+
+---
+
+## Abductor Machine
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 05-Oct-22 | 140-15(light) / 160-15 / 160-16 | |
+| 21-Oct-22 | 160/170/180-15/15/15(5) | |
+| 02-Nov-22 | 190-15 / 200-15 / 200-15 | |
+
+---
+
+## Adductor Machine
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 21-Oct-22 | 140-15 / 140-15 / 160-15 | |
+| 02-Nov-22 | 150-15 / 160-15 / 160-15 | |
+
+---
+
+## GHD / Reverse Hyper
+
+| Date | Sets (reps) | Notes |
+|------|------------|-------|
+| 05-Oct-22 | 15 / 12 / 12 | 6th from last |
+| 21-Oct-22 | 15 / 12 / 12 | |
+| 08-Dec-22 | Rev hyper: 15 / 12 / 12 | IN |
+| 17-Dec-22 | 15 / 15 / 15 | |
+| 30-Jan-23 | Rev hyper: 14 / 12 / 10(25) | |
+| 11-Feb-23 | Rev hyper: 15 / 15 / 15 | Better reps today, try with weight |
+| 22-Feb-23 | Rev hyper: bw-15 / 25-12 / 25-10 | |`,
+
+shoulders: `# Shoulder Exercises
+
+> **Format:** \`date: weight(lbs/kg)-reps/reps/reps\` | Parenthetical notes are trainer cues/observations
+> **Abbreviations:** cD=chest dominant, dD=delt dominant, nc=non-continuous, c=continuous, LR=low range, mod=moderate, perf=perfect, drop=drop set, wu=warm-up, ss=superset
+
+---
+
+## Seated Back-Supported OHP (DB)
+
+**Starting weight:** 15 lbs | **Current working range:** 30-40 lbs
+**Angles tested:** 75, 90 degrees; seated vs standing; single arm
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 23-Sep-22 | 15-12 / 15-15 / 15-15 | Stick with 15 |
+| 10-Oct-22 | 15-12 / 15-12 / 15-10 | W/o back support |
+| 25-Oct-22 | 15-12 / 15-12 / 15-12 | Shoulder dominant |
+| 04-Nov-22 | 15-12 / 15-15 / 20-9 | Chest dominant |
+| 31-Jan-23 | 20-12 / 20-12 / 20-12 | Chest dom |
+| 07-Feb-23 | 20-12 / 25-12(0/1) / 30-7(0) | Delt dom |
+| 12-Apr-23 | 25-10 / 25-10(0-1) / 25-6 | Mix day, 20s N/A |
+| 31-Dec-23 | 25-12(low range) / 25-12(good range) / 25-10 | 75 degrees |
+| 03-Jan-24 | 25-10 / 25-12 / 25-10 | 90 degrees |
+| 08-Jan-24 | 25-12 / 30-12(varying range by end) / 30-12(grind) | 75 degrees |
+| 10-Jan-24 | 25-12(arch increases by end) / 25-12 / 25-9 | No support, start at 20s |
+| 15-Jan-24 | 25-6(wu) / 30-12 / 35-7 / 35-8 | 75 degrees |
+| 19-Jan-24 | 20-15 / 25-12 / 25-8 | Seated no support |
+| 23-Jan-24 | 30-12(3) / 35-10 / 35-8(great depth) | 75 degrees |
+| 26-Jan-24 | 30-12 / 35-3(drop) / 35-6(drop) / 15-backoff | 90 degrees. For 90 start at 25 |
+| 31-Jan-24 | 30-12(2) / 35-10 / 40-6(backoff standing) | 75 degrees |
+| 03-Feb-24 | 25-15 / 25-12 / 25-10(drop) | Standing |
+| 07-Feb-24 | 30-12(struggle sign) / 35-12 / 40-7(drop at 25) | 75 degrees |
+| 12-Feb-24 | 25-15(unstable trunk) / 30-9(L side off) / 25-15(better) | Single arm |
+| 14-Feb-24 | 35-15 / 40-7 / 40-6 | 75 degrees, post legs, no 30s |
+| 20-Feb-24 | 30-14(grind) / 30-8 / 30-10(drop) | 90 degrees |
+| 28-Feb-24 | 35-12 / 35-8 / 30-12 / 30-15(drop) | 75 degrees |
+| 07-Mar-24 | 30-9 / 30-10 / 25-12 / 25-10 | Standing, start at 25. Body balance not great |
+| 26-Mar-24 | 25-12 / 25-10 / 25-12 | Standing, neck/L blade discomf from prev back |
+| 31-May-24 | 25-11(low range) / 20-12(better but drop by end) / 20-15(better) | 75 degrees. Working: 20/20/25 |
+| 05-May-24 | 20-15(wavy) / 20-15(better) / 25-8 | Standing |
+| 11-Jun-24 | 20-15 / 30-12(slight range drop) / 30-11 | 75 degrees |
+| 18-Jun-24 | 20-15(better) / 25-12(wavy BW distribution) / 25-10 | Standing |
+| 25-Jun-24 | 25-15 / 30-8 / 30-12 | 75 degrees |
+| 02-Jul-24 | 20NA / 25-15(high range) / 30-8 / 25-10 | Standing, delt dom |
+| 13-Jul-24 | Plate ss rod pushdown: 45-12 / 12 / 12 | Chest dom |
+| 23-Jul-24 | 25-15 / 30-8 / 30-6(drop) | Standing, delt dom |
+| 29-Aug-24 | 25-15 / 25-12 / 25-12 | Standing |
+| 03-Oct-24 | 25-15(stability 7.5/10) / 30-12(8/10) / 30-12 | Standing |
+| 22-Oct-24 | 25(10 perf/last 5 shaky) / 30-15(8/10) / 35-8 | Seated 75 degrees, delt dom |
+| 22-Nov-24 | 30-15(shaky end) / 35-6 / 35-7 | |
+| 26-Nov-24 | 25-15 / 25-12 / 25-12 | Standing |
+| 05-Dec-24 | 25-14(side tilt) / 25-12(better/off by end) / 25-12 | Single arm |
+| 26-Dec-24 | 30-15 / 35-8 / 35-8 | 75 degrees |
+| 06-Jan-25 | 25-12 / 25-12 / 30-9 | 90 degrees, delt dom |
+| 21-Jan-25 | 30-15 / 35-10 / 35-8 | 75 degrees, delt dom |
+| 13-Feb-25 | 30-15 / 35-10 / 35-8 | |
+| 17-Feb-25 | Plate standing: 45-12 / 45-11 / 45-7(drop) | Chest dom |
+| 28-Feb-25 | 30-15 / 35-10 / 40-6(drop) | 75 degrees, delt dom |
+| 25-Mar-25 | 30-15 / 35-10 / 40-6(drop) | Delt dom |
+| 09-May-25 | 30-15 / 35-10 / 40-6(drop) | M has L delt pinch. Shifted to incline chest |
+| 30-May-25 | Tried 15s at 90/60 both - can feel slight L delt pain | Switching to 15 degrees |
+| 18-Jun-25 | Plate: 35-15(micro max) / 45-12 / 45-11 | Post banded rehab. OK today |
+| 22-Aug-25 | 25-15(1/10 pinch all reps) / 35-13 / 35-11(1/10) | L arm tends to flare out at descent start |
+| 14-Oct-25 | 15-10(ok) / 25-12(2/10 micro increase by end) / 25-10(same) | |
+| 26-Nov-25 | 20s-15(1/10 pinch) / 25s-15 / 30s-10(1/10) | |
+| 04-Jan-26 | 15s / 30s x3 | Leg day |
+| 15-Jan-26 | 30s-12 / 30s-12 / 35s-6 | |
+| 06-Feb-26 | 75 degrees | |
+| 05-Mar-26 | 30 / 35-10 / 35-8(drop) | 75 degrees, legs day |
+| 17-Mar-26 | x4 | |
+| 28-Mar-26 | 30 / 35-10 / 35-8(drop) | |
+
+---
+
+## Smith OHP
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 24-Feb-23 | empty-12 / 12 / 15 | No back support |
+| 22-Jun-24 | 10s-16 / 20s-12 / 25s-8 | 75 degrees |
+| 18-Sep-24 | 15s-15 / 25s-10 / 25s-10 / 25s-8 | 75 degrees, delt dom |
+| 19-Nov-24 | 15s-15 / 25s-12 / 30s-8 | |
+| 04-Feb-25 | 25s-10 / 25s-12(LB) / 25s-10 | Chest dom |
+| 03-Oct-25 | 20s-15 / 25s-12 / 30s-10(1/10 all sets) | |
+| 15-Dec-25 | 20s(1-2/10 since 5th) / 30s-8(same) / 25s-15(good form) | |
+| 12-Feb-26 | 25s / 30s / 25s | Legs day |
+| 03-Apr-26 | 25s / 30s / 25s | 75 degrees |
+
+---
+
+## Machine Overhead Press
+
+**Starting weight:** 45-50 lbs | **Current working range:** 75-85 lbs
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 24-Nov-22 | 50-12 / 55-12 / 60-5(drop at 50) | IN |
+| 08-Dec-22 | 50-12 / 50-3(drop 40/30) / 40-10(drop at 30) | IN |
+| 18-Jan-23 | 45-5(drop at 30) / 37.5-10 / 37.5-8(drop at 30) | |
+| 21-Dec-23 | 50-10 / 50-10 / 50-12 | Golds |
+| 18-Aug-24 | 60-15 / 70-15 / 80-13 | Delt dom. Working: 70/85/90 |
+| 03-Sep-24 | 70-15 / 85-10 / 80-12(wavy/wrist in extension) / 75-6(drop) | With legs, post hamstring. Working: 70/75/75 |
+| 02-Dec-24 | 75-15(inconsistent) / 75-15(hard cue/better) / 80-12 | |
+| 20-Dec-24 | 75-15(high range/HE at wrist) / 80-15(hard cue at wrist) / 85-10 | |
+| 31-Dec-24 | 75-15 / 80-15 / 85-10 | |
+| 28-Feb-25 | 75-15 / 80-15 / 85-10 | |
+| 07-Apr-25 | 75-15 / 80-15 / 85-10 | Leg day |
+
+---
+
+## Front Raises
+
+**Working range:** 15-20 lbs DB or 35 lb plate
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 13-Dec-22 | 10-12 / 10-15 / 10-15 | |
+| 03-Jan-24 | 15-heavy / 10-10 / 10-15 / 10-15 | Least swing |
+| 19-Jan-24 | 10-15 / 10-15 / 10-8+20(front+lateral) | |
+| 31-Jan-24 | 10-15 / 10-20 / 10-12+12(f+L) | |
+| 12-Feb-24 | 10-20 / 15-15(switched to hammer at 9th) / 15-15 | |
+| 02-Jul-24 | 15-15 / 15-15 / 15-15 | |
+| 18-Aug-24 | 15-15 / 15-15 / 15-15 | Delt dom |
+| 19-Nov-24 | 15-15 / 15-15 / 15-15 | |
+| 26-Nov-24 | Plate: 35-15(shaky) / 35-15(better) / 35-15(ok) | |
+| 20-Dec-24 | Plate: 35-15 / 35-15 / 35-15 | |
+| 06-Jan-25 | Plate: 35-15 / 35-15 / 35-15 | |
+| 21-Jan-25 | 35-15 / 35-14 / 35-14 | |
+| 28-Feb-25 | 20-12(shaky) / 20-12 / 20-12 | Delt dom |
+| 15-Jul-25 | 15-15 / 15-15(no pain) / 20-15(nc/8/10/no pain) | |
+| 19-Aug-25 | Hammer grip: 15-15(0/10) / 15-15(9/10 control) / 15-15(10c) | |
+| 03-Sep-25 | Seated hammer grip: 15-15 / 15-15 / 15-15 | |
+| 12-Sep-25 | Rope cable: 45-15(shrug) / 40- | |
+| 14-Oct-25 | Rope cable: 45-15 / 40- | |
+| 28-Oct-25 | Plate: 25 / 35 / 35 | |
+| 11-Nov-25 | ss + rev fly | |
+| 04-Dec-25 | ss + rev fly | |
+| 17-Mar-26 | 15s | |
+| 28-Mar-26 | ss L raises | |
+
+---
+
+## Lateral Raises
+
+**Working weight:** 15 lbs
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 08-Aug-22 | 5-10 / 5-10 / 5-10 | |
+| 13-Sep-22 | 10-15 / 10-15 / 10-15 | US |
+| 25-Oct-22 | 10-15 / 15-6(drop) / 10-12 | |
+| 24-Nov-22 | 10-12 / 10-12 / 10-10 / 10-12 | |
+| 19-Dec-22 | 5-12 / 5-12 / 5-12 | |
+| 18-Jan-23 | 10-15 / 10-15 / 10-15 | Last few reps unclear |
+| 07-Feb-23 | 10-12(easy) / 15-15 / 15-13 | |
+| 12-Apr-23 | 10NA: 15-12 / 15-15 / 15-15(nc) | |
+| 31-Dec-23 | 10-15(perf slow) / 15-12 / 15-12 | |
+| 10-Jan-24 | 10-15 / 15-12 / 15-12 | |
+| 15-Jan-24 | 10-15 / 15-12 / 15-12 | |
+| 26-Jan-24 | 15-12 / 15-15 / 15-15 | |
+| 03-Feb-24 | 15-12 / 15-15 / 15-15 | |
+| 07-Feb-24 | 15-12 / 15-15 / 15-15 | |
+| 14-Feb-24 | 15-12(off) / 15-11(fatigued/uneven arms) / 10-15 | |
+| 20-Feb-24 | 10-15(better) / 10-15 / 10-15 | |
+| 28-Feb-24 | 10-15 / 10-15 / 10-15 | |
+| 07-Mar-24 | 10-15(lite) / 15-15(not best) / 15-15(grind by end) | |
+| 27-Mar-24 | 10-15 / 15-15 / 15-15 | |
+| 05-Jun-24 | 15-15 / 15-15 / 15-15 | |
+| 25-Jun-24 | 15-15 / 15-15 / 15-15 | Seated |
+| 23-Jul-24 | 15-15 / 15-15 / 15-15 | Delt dom, ss face pulls |
+| 30-Jul-24 | some pinch on L delt, switching to rev fly | Chest dom |
+| 29-Aug-24 | 15-15(unstable) / 15-15 / 15-15 | Delt dom |
+| 03-Oct-24 | ss HALO: 15-12(unstable) / 6kg-20 / 6kg-18 | |
+| 22-Oct-24 | ss HALO(35lb) / 15-15(shaky waist) / 15-15(better) / 15-14 | |
+| 22-Nov-24 | 15-15 / 15-15 / 15-14 | |
+| 05-Dec-24 | 15-15 / 15-15 / 15-14 | Mixed |
+| 26-Dec-24 | 15-15 / 15-15 / 15-14 | |
+| 21-Jan-25 | 15-15 / 15-15 / 15-14 | |
+| 13-Feb-25 | 15-15 / 15-15 / 15-14 | |
+| 25-Mar-25 | ss rev fly | |
+| 09-May-25 | 15-15 / 15-15 / 15-14 | |
+| 23-Dec-25 | 10s(1/10) / 15s / 15s | |
+| 15-Jan-26 | ss rev fly | |
+| 05-Mar-26 | 10s / 15s / 15s | |
+| 28-Mar-26 | ss F raises | |
+
+---
+
+## Halos
+
+| Date | Sets | Notes |
+|------|------|-------|
+| 11-Mar-25 | 35-45s | |
+
+---
+
+## High Pulls (DB)
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 20-Feb-24 | 15-15 / 20-15 / 20-20 | |
+| 18-Jun-24 | 20-15 / 20-15 / 20-15(goes off by end) | |
+| 02-Dec-24 | 20-15 / 20-14 / 20-12 | Elbow shoots behind early |
+
+---
+
+## Incline Bench Row (Shoulder/Rear Delt)
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 10-Aug-22 | 7.5-15 / 10-12(mod) / 10-12 | IN |
+| 30-Aug-22 | 12.5-15 / 15-15 / 15-12 | |
+| 13-Dec-22 | 25-15 / 35-10 / 35-9 | |
+| 19-Dec-22 | 12.5-15 / 12.5-15 / 12.5-15 | |
+| 07-Feb-23 | 25-15 / 30-15 / 35-14 | |
+| 17-Feb-23 | 30-15 / 30-15 / 30-15 | |
+| 18-Aug-24 | 30-15 / 35-15 / 35-15 | Delt dom |
+
+---
+
+## Machine Reverse Fly
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 29-Aug-24 | 60-18(1 break) / 70-15(1 break) / 70-15 | |
+| 08-Jul-25 | 65-15 / 65-15(uneven finish at front) / 65-15 | Stop L arm way early at front most reps |
+
+---
+
+## Seated Bent-Over Reverse Fly (DB)
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 24-Nov-22 | 10-12 / 10-12 / 10-12 / 10-10 | IN. Movement pattern little off, R shoulder shrug |
+| 03-Jan-24 | 10-15 / 15-15 / 15-15 | |
+| 11-Jun-24 | 10-20(ok) / 15-15(elbow in) / 15-15 | Wrist tends to bend |
+| 25-Jun-24 | 15-15 / 15-15 / 15-15 | |
+| 02-Jul-24 | 15-15 / 15-15 / 15-15 | ss push-ups |
+| 30-Jul-24 | 15-15 / 15-15 / 15-15 | Chest dom |
+| 19-Aug-24 | 15s x3 | Shifted to rows at 45 degrees |
+| 12-Feb-26 | 15s x3 | |`,
+
+triceps: `# Tricep Exercises
+
+> **Format:** \`date: weight(lbs)-reps/reps/reps\` | Parenthetical notes are trainer cues/observations
+> **Abbreviations:** nc=non-continuous, c=continuous, LR=low range, mod=moderate, perf=perfect, drop=drop set, ss=superset, V=V-grip, rod=straight bar
+
+---
+
+## Tricep Pushdown (Cable)
+
+**Attachments:** V-grip, rod, rope, single handle
+**Current working range:** Rod 90-100 lbs, Rope 60-70 lbs, Single 25-30 lbs
+
+| Date | Sets (weight-reps) | Attachment | Notes |
+|------|-------------------|------------|-------|
+| 08-Aug-22 | 20-15 / 20-15 / 20-15 | - | IN |
+| 23-Aug-22 | 20-15 / 20-15 / 25-12 | - | IN |
+| 30-Aug-22 | 20-15 / 25-15 / 25-15 | - | |
+| 23-Sep-22 | 50-15 / 50-15 / 50-15 | - | US |
+| 30-Sep-22 | 50-15 / 60-15 / 60-10 | - | |
+| 10-Oct-22 | 50-15 / 60-6(drop at 50) / 50-8(nc) | - | Start with 50s, need cont reps |
+| 17-Oct-22 | 50-15 / 50-15 / 60-15(0) | V | |
+| 25-Oct-22 | 50-15(5) / 60-15(0) / 60-10(drop) | V | |
+| 31-Oct-22 | 60-15 / 60-15 / 60-12 / 60-15 | V | |
+| 04-Nov-22 | 60-15 / 60-15(pauses at top) / 60-11 | - | |
+| 22-Nov-22 | 27.5/33-15 / 33-15 / 33-15 | - | IN (lbs) |
+| 09-Dec-22 | 27.5-15 / 33-15 / 38.5-9(drop) | - | IN. Start with 33 |
+| 19-Dec-22 | 20-15 / 20-15 / 20-15 | Rev grip | |
+| 18-Jan-23 | 30-15 / 30-15 / 30-11(drop at 20) | - | |
+| 25-Jan-23 | 30-15 / 35-6(drop) / 30-15 | - | |
+| 31-Jan-23 | 30-15 / 30-15 / 30-15 | - | |
+| 07-Feb-23 | 30-15 / 30-15 / 30-15 / 30-15 | - | |
+| 24-Feb-23 | 20-15 / 25-12 / 25-12 | Rope | |
+| 02-Jan-24 | 50-15 / 60-15 / 60-15 | V | |
+| 10-Jan-24 | 60-15 / 70-15 / 70-14 | Rod | Max 70 |
+| 18-Jan-24 | 60-15 / 70-15 / 70-15 | V | |
+| 19-Jan-24 | 60-14 / 60-12 / 50-10(drop at 45) | 2 ropes | Start at 45 paused |
+| 25-Jan-24 | 60-15 / 70-15 / 70-15 | Rod | Hard cued not to pause at top |
+| 03-Feb-24 | 60-10 / 50-15 / 50-15 | 2 ropes | |
+| 09-Feb-24 | 70-15(nc) / 70-15(nc) / 70-8(drop) | Rod | ss PU |
+| 12-Feb-24 | 70-15 / 80-15(nc) / 80-15(nc/shaky) | V | 70 max |
+| 19-Feb-24 | 50-17 / 60-15(nc) / 60-14 | 2 ropes | |
+| 28-Feb-24 | 60-20(c) / 70-18(almost c) / 80-13 | Rod | |
+| 24-Mar-24 | 60-18 / 70-10 / 60-15 / 60-15 | Rope | |
+| 03-Jun-24 | 25-12 / 25-10 | Rope/pulldown | |
+| 22-Jun-24 | 70-18 / 80-15 | Rod | |
+| 13-Jul-24 | 80-15 / 90-15(nc/grind) / 90-15 | Rod | ss plate press |
+| 23-Jul-24 | 80-18 / 100-9(hard cue freeze body) / 90-15 | Rod | |
+| 30-Jul-24 | 80-18(ok) / 90-15(ok/almost c) / 100-13 | Rod | |
+| 09-Aug-24 | 80-18 / 90-15(nc) / 90-15(same) | Rod | |
+| 18-Aug-24 | 80-20 / 90-18 / 100-11(nc) | Rod | |
+| 02-Sep-24 | 60-11 / 50-13 | Rope | Rod: 45-10 / 40-15 / 40-11 |
+| 18-Sep-24 | 90-16 / 90-15 / 90-12 | Rod | |
+| 25-Sep-24 | 90-16 / 90-15 / 90-12 | Rod | |
+| 03-Oct-24 | 60-12 / 55-15(shaky) / 55-13 | Rope | |
+| 12-Oct-24 | 90-16 / 100-12 / 100-12 | Rod | |
+| 22-Oct-24 | 90-16 / 100-12 / 100-12 | Rod | M has constant weight swaying over foot |
+| 05-Nov-24 | 6-17 / 7-8 / 6-12 | Single | |
+| 19-Nov-24 | 90-16 / 100-12 / 100-12 | Rod | |
+| 21-Nov-24 | 30-15(<8/10) / 30-15 / 35-13 | Single | |
+| 26-Nov-24 | 90-18 / 100-15 / 100-14 | Rod | Elbows out |
+| 05-Dec-24 | 70-18 / 80-13(0) / 80-12(0) | Rope | |
+| 20-Dec-24 | 100-15(stops at top) / 90-15(hard cue/cont) / 100-15(better) | Rod | |
+| 26-Dec-24 | 30-15 / 35-10 / 35-10 | Single | |
+| 31-Dec-24 | 90 / 100 / 100 | Rod | |
+| 13-Jan-25 | 90 / 100 / 100 | Rod | |
+| 04-Feb-25 | 100-18 / 110-10 / 100-12 | Rod | |
+| 13-Feb-25 | 100-18 / 110-10 / 90-15 | Rod | 90 (100 is unstable AF) |
+| 28-Feb-25 | 100-18 / 110-10 / 90-15 | Rod | |
+| 11-Mar-25 | 100-18 / 110-10 / 90-15 | Rod | |
+| 25-Mar-25 | Paused: 80-15 / 90-15 / 100-10 | - | Start at 80 paused |
+| 07-Apr-25 | Paused: 80-15 / 90-15 / 100-10 | - | Working: 90/100/100 |
+| 21-May-25 | 90x3 | - | |
+| 10-Jun-25 | 90-15 / 100-13 / 100-13 | - | Cue for instant elbow bend at ascent start |
+| 01-Jul-25 | 30-15 / 40-13 / 40-13 | New longer rope-like | |
+| 08-Jul-25 | 6 / 35-13 / 30-14 / 25-13 | Single | Can't lean backwards, can't stabilize L |
+| 15-Jul-25 | 90-15 / 100-13 / 100-13 | Rod | |
+| 25-Jul-25 | 60-15 / 70-12 / 70-13 | Rope | |
+| 05-Aug-25 | 25-18(9/10) / 30- | Single | |
+| 19-Aug-25 | 25-15 / 30-12 / 25-14 | Single | |
+| 03-Sep-25 | Rod | Rod | |
+| 12-Sep-25 | Single x2 + Rod x2 | Mix | |
+| 28-Oct-25 | 25-15 / 30-12 / 25-14 | - | |
+| 03-Nov-25 | 25-15 / 30-12 / 25-14 | - | Single: 30-10 / 25-12 / 25-11 |
+| 11-Nov-25 | 90-15 / 100-13 / 100-13 | Rod | |
+| 26-Nov-25 | 90-15 / 100-13 / 100-13 | - | |
+| 15-Dec-25 | Single | Single | |
+| 23-Dec-25 | Single (slight pinch at rod start) | Single | |
+| 13-Jan-26 | 70x3 | Rope | |
+| 09-Feb-26 | Rev: 60-15 / 70-14 / 70-13 | - | |
+| 01-Mar-26 | Rod | Rod | |
+
+---
+
+## Bent-Over Overhead Extension (Rod/Rope)
+
+| Date | Sets (weight-reps) | Attachment | Notes |
+|------|-------------------|------------|-------|
+| 01-Jul-25 | 70-15 / 80-14 / 80-12 | Rod | |
+| 08-Jul-25 | 70-12(7/10) / 60-15(better range but fwd bent goes off) / 60-15(7.5/10) | Rod | Head up cue |
+| 25-Jul-25 | 60- | Rod | |
+| 22-Aug-25 | 55-18 / 60-15(8/10) / 70-9(7/10) | Rope | |
+| 03-Nov-25 | 60-12 / 70-12 / 80-3(drop) | Rod | |
+| 15-Dec-25 | 60-12 / 70-12 / 80-3(drop) | Rod | |
+| 20-Feb-26 | 60-12 / 70-12 / 80-3(drop) | - | |
+| 03-Apr-26 | 60-12 / 70-12 / 80-3(drop) | - | |
+
+---
+
+## Rope OHE (Overhead Extension)
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 24-Mar-24 | 50-15 / 50-15 / 50-15 | |
+| 26-Mar-24 | V: 70-20 / 80-15 / 80-15 | |
+| 18-Aug-24 | Bent-over: 60-20 / 70-10 | Delt dom |
+| 11-Mar-26 | 60- | |
+
+---
+
+## Kickback (DB / Cable)
+
+**Starting weight:** 5 lbs | **Current range:** 20-25 lbs
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 23-Aug-22 | 5-15 / 5-18 / 5-15 | IN |
+| 23-Sep-22 | 15-15 | |
+| 10-Oct-22 | 15-15 / 15-13 / 15-15(nc) | |
+| 17-Oct-22 | 15-15 / 15-15 / 15-15 | |
+| 04-Nov-22 | 15-15(fast) / 20-15 | |
+| 13-Dec-22 | 15-15 / 15-15 / 15-15 | |
+| 25-Jan-23 | 20-15 / 20-15 / 20-15 | Start at 15, 20 very unstable |
+| 07-Feb-23 | 15-15 / 20-15 / 20-15 | |
+| 17-Feb-23 | 20-15 / 20-15 / 20-15 | |
+| 09-Jan-24 | 20-15 / 25-15(shaky/engage better) / 25-15 | |
+| 26-Jan-24 | 20-15 / 25-15(shaky/engage better) / 25-15 | |
+| 12-Feb-24 | 20-15 / 25-15(shaky/engage better) / 25-15 | |
+| 04-Mar-24 | 20-15 / 25-15(shaky/engage better) / 25-15 | |
+| 05-Jun-24 | 20-20 / 25-15 / 25-15 | |
+| 23-Jul-24 | 25-20 / 30-15 / 30-15 | |
+| 03-Oct-24 | 25-15(7.5/10, elbow wobbles) / 25-15(hard cue/sharp sens) / 25-13 | |
+| 22-Oct-24 | 25-14 / 25-14 / 25-14 | Start at 20 |
+| 05-Nov-24 | 20-15 / 25-14 / 25-14 | |
+| 20-Dec-24 | 20-15 / 25-14 / 25-14 | |
+| 07-Mar-25 | Cable: 25-10 / 25-12 / 25-12 | |
+| 21-May-25 | Cable: 25-10 / 25-12 / 25-12 | |
+| 25-Jul-25 | Cable: 25-10 / 25-12 / 25-12 | |
+| 24-Oct-25 | Cable: 25-10 / 25-12 / 25-12 | |
+| 13-Jan-26 | Cable: 25-10 / 25-12 / 25-12 | |
+| 30-Jan-26 | Cable: 25-10 / 25-12 / 25-12 | |
+| 20-Feb-26 | Cable: 25-10 / 25-12 / 25-12 | |
+
+---
+
+## Machine Seated Tricep Extension
+
+**Starting weight:** 5 lbs | **Current working range:** 55-75 lbs
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 13-Dec-22 | 5-18 / 13.5-12 / 13.5-12 / 13.5-15 | |
+| 02-Jan-23 | 13.5-12 / 13.5-12 / 13.5-12 | |
+| 22-Feb-24 | 50-10 / 45-15 / 45-15 | |
+| 04-Mar-24 | 45-15(nc) / 45-10 / 40-15(nc) / 35-10 | Start at 35 |
+| 02-Sep-24 | 65-15 / 70-12 / 70-10(drop) | |
+| 10-Sep-24 | 65-18 / 70-12 / 70-8(drop) | |
+| 25-Sep-24 | 65-18 / 70-12 / 65-14(misses extension) | |
+| 12-Oct-24 | 65-14 / 65-11 / 60-14(extension off early) | 60x3 |
+| 06-Jan-25 | 50-17 / 55-12 / 55-12 / 55-12 | |
+| 13-Jan-25 | 55-14(elbow off) / 55-15(slight uneven) | |
+| 04-Feb-25 | 55-14(elbow off) / 55-15(slight uneven) | |
+| 28-Feb-25 | 55-14(elbow off) / 55-15(slight uneven) | |
+| 11-Mar-25 | 55-15 / 60-18 / 65-12 | |
+| 25-Mar-25 | 65-18 / 75-10 / 70-10 | |
+| 18-Jun-25 | 70-15 / 75-11 / 75-11 | |
+| 15-Jul-25 | 70x2 | |
+| 19-Aug-25 | 70x2 | |
+| 03-Sep-25 | 70x2 | |
+| 15-Dec-25 | x2 | |
+| 02-Jan-26 | 70x2 | |
+| 30-Jan-26 | 70x2 | |
+| 09-Feb-26 | 70x2 | |
+| 11-Mar-26 | 70x2 | |
+
+---
+
+## DB Overhead Extension
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 22-Feb-24 | 30-12 / 25-15 / 25-15 | |
+| 26-Apr-24 | 30-12 / 30-10(slight L delt pain) / 25-15 | |
+| 10-Sep-24 | 30-15 / 30-15(not great) / 30-12 | |
+| 21-May-25 | 30-15 / 30-15(not great) / 30-12 | |
+| 30-May-25 | Pair: ss kickbacks 25s: 15-8 / 15-12 / 15-9 | |
+| 23-Dec-25 | 30-12 / single 15-11 / 15-10 | |
+
+---
+
+## DB Skull Crusher
+
+**Working range:** 15-25 lbs
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 02-Jan-23 | 10-12 / 10-10 / 10-10 | IN |
+| 17-Feb-23 | 10-16 / 10-15(3) / 15-8(drop) | Superset kickback |
+| 10-Jan-24 | 10-15 / 10-15 / 15-4(drop) | |
+| 19-Jan-24 | 15-10 / 15-12 / 15-12 | |
+| 03-Feb-24 | 15-10 / 15-12 / 15-12 | |
+| 28-Feb-24 | 30 degree: 10-18 / 15-15 / 20-6(drop) | |
+| 07-Mar-24 | 15-18 / 20-12 | |
+| 03-Jun-24 | 15-10 | |
+| 22-Jun-24 | 20-6 / 15-15 / 15-15 | |
+| 30-Jul-24 | 15-14 / 15-13 / 15-13 | |
+| 18-Sep-24 | 15-15 / 15-12 / 15-11 | |
+| 31-Dec-24 | 15-15 / 20-15 / 20-12 | Use DBs |
+| 21-Jan-25 | 20-15 / 20-15 / 25-8(drop) | |
+| 17-Feb-25 | 20-15 / 20-15 / 25-8(drop) | |
+| 09-May-25 | 20-15 / 20-15 / 25-8(drop) | |
+| 18-Jun-25 | 20-15 / 20-15 / 25-8(drop) | |
+| 02-Jan-26 | 20-15 / 20-15 / 25-8(drop) | |
+
+---
+
+## Parallel Bar Hold / Dips
+
+| Date | Sets | Notes |
+|------|------|-------|
+| 03-Jan-24 | Hold: 36s / 43s | |
+| 03-Jan-24 | Superset: 10-15 / 15-14 / 15-15 | |
+| 02-Feb-24 | Assisted reps: 12 / Hold: 42s / 36s | |`,
+
+biceps: `# Bicep Exercises
+
+> **Format:** \`date: weight(lbs)-reps/reps/reps\` | Parenthetical notes are trainer cues/observations
+> **Abbreviations:** nc=non-continuous, c=continuous, LR=low range, mod=moderate, perf=perfect, drop=drop set, ss=superset, alt=alternating, incl=incline
+
+---
+
+## Cable Curls (Rod / Rope / Rev Grip / D-Handle)
+
+**Current working range:** Rod 60-80 lbs, Rev 40-50 lbs
+
+| Date | Sets (weight-reps) | Variant | Notes |
+|------|-------------------|---------|-------|
+| 08-Aug-22 | 20-15 / 20-15 / 20-15 | - | |
+| 20-Sep-22 | 50-15 / 50-13 / 50-12 | - | US |
+| 26-Sep-22 | 50-15 / 50-15 / 50-10(most cont reps) | - | Stick to same |
+| 31-Oct-22 | 50-10 / 44-12 / 44-10 / 40-12 | - | Start with 40 |
+| 09-Feb-23 | 30-12 / 25-15(pausing at bottom) / 25-9(cont reps) | - | Start at 20, cont reps, pause at top |
+| 09-Jan-24 | Rev: 6-8(drop) / 4-15(nc) / 4-15(nc) | Rev | |
+| 25-Jan-24 | Rod: 30-15 / 40-15 / 50-15 | Rod | Working: 40/50/60 |
+| 19-Feb-24 | Rope: 40-20 / 60-15(grip tough/nc) / 60-18(better) | Rope | |
+| 28-Feb-24 | Rod: 45-18 / 60-15(nc) / 70-12 | Rod | |
+| 28-Feb-24 | Rev: 30-18 / 40-12 / 40-15(nc) | Rev | |
+| 07-Mar-24 | Rod: 60-20(c) / 70-15(grind) / 80-7(drop) | Rod | |
+| 07-Mar-24 | Rev: 40-15(nc) / 40-15(more c) / 45-15(back bend high) | Rev | |
+| 27-Jun-24 | 60-20(high back bend) / 80-6(torso unstable/drop) / 60-15(still on) | - | |
+| 16-Jul-24 | Rev: 45-15(high back bend by end) / 45-15(hard cue/lots better) | Rev | |
+| 02-Aug-24 | Rev ss DB curls: 40-15(hard cue/perf) / 45-15(perf) / 50-12(neat) | Rev | |
+| 18-Oct-24 | Rev: 45-13 / 45-15 / 45-15 | Rev | 45 max for rev |
+| 21-Nov-24 | 45-18 / 50-15(ok arm/body slightly hangs back) / 50-15(better) | - | |
+| 27-Nov-24 | 45-18 / 50-15 / 50-15 | - | |
+| 09-Jan-25 | 50-15 / 60-14 | - | |
+| 15-May-25 | Rev: 40-15(perf) / 50-12 | Rev | |
+| 31-Oct-25 | Both sides D-handle: 25-20 / 35-18 / 40-10 | D-handle | |
+| 08-Jan-26 | same: 40-13 / 40-12 / 40-15 | D-handle | |
+| 29-Jan-26 | Rev: 40 / 50 / 50 | Rev | |
+
+---
+
+## DB Curls (Standing / Seated / Incline / Supine)
+
+**Starting weight:** 15 lbs | **Current working range:** 20-25 lbs
+
+| Date | Sets (weight-reps) | Variant | Notes |
+|------|-------------------|---------|-------|
+| 03-Oct-22 | 15-12 / 15-10 / 15-10 | - | |
+| 11-Oct-22 | 15-12 / 15-12 / 15-10 | - | |
+| 08-Nov-22 | 15-15 / 15-12 / 15-12 | - | |
+| 14-Dec-22 | 15-15 / 15-12 / 15-10 | - | |
+| 05-Jan-23 | 7.5-15 / 7.5-15 / 10-3(drop) | - | |
+| 21-Jan-23 | 20-12 / 20-10 / 20-10 | - | |
+| 26-Jan-23 | 15-15 | - | |
+| 21-Feb-23 | 15-15 / 15-15 / 15-12 | - | |
+| 18-Jan-24 | 15-15 / 20-10(drop) / 20-12 | - | |
+| 23-Jan-24 | 15-15 / 15-12 / 15-12 | Incline | |
+| 31-Jan-24 | 20-15 / 20-9 / 20-10 | Seated | |
+| 09-Feb-24 | 20-12 / 20-12 / 20-15 | Seated | |
+| 14-Feb-24 | Incline: 75deg-15-20 / 60deg-15-18 / 20-10 | Incline | |
+| 02-Mar-24 | 20-15 / 20-15 / 25-6(drop) / 20-12 | - | |
+| 03-Jun-24 | 75deg: 15-16 / 20-12(grind/back comp on) / 20-14 | - | |
+| 11-Jun-24 | 75deg: 20-15(not bad) / 20-12 / 20-7(drop) | - | |
+| 11-Jun-24 | Rev: 15-8(switched to hammer) / 10-15(ok) | Rev | |
+| 17-Jun-24 | 15-20 / 20-15 / 20-14(high back bend) | Standing | |
+| 18-Jun-24 | 75deg: 20-12(nc) / 15- | - | |
+| 16-Jul-24 | 75deg: 20-15 / 20-12 / 20-12(grind every rep) | - | |
+| 26-Jul-24 | 20-15 / 20-12 / 20-13 | Flat | |
+| 02-Aug-24 | ss rev curls | - | |
+| 06-Sep-24 | 20-9 / 15-15 / 15-15 | - | |
+| 23-Sep-24 | 20-15 / 20-11 / 15-18 | - | |
+| 02-Oct-24 | Incline: 15-20 / 20-11 / 20-11 | Incline | Cue to ascent slow, no speed, eliminating need of jerk |
+| 30-Dec-24 | 20-15 / 20-12 / 20-11 | Mixed | Same cue |
+| 15-Jan-25 | Alt: 20-15 / 20-12 / 20-11 | Alt | |
+| 15-May-25 | 20-15 / 20-12 / 20-11 | - | |
+| 05-Jun-25 | 20-15 / 20-12 / 20-11 | - | High L wrist pain for F (switched to farmers) |
+| 24-Jun-25 | Supine + hammer: 20-15 / 20-14 / 20-12 | - | |
+| 03-Jul-25 | Incline: 20-12 / 20-10 / 20-8 | Incline | Slight delt |
+| 18-Jul-25 | 20-12 / 20-10 / 20-8 | Incline | |
+| 05-Sep-25 | 20-12 / 20-10 / 20-8 | Incline | |
+| 21-Sep-25 | Seated alt | Seated | |
+| 24-Nov-25 | 25s x3 (hammer because wrist on at supine) | - | |
+| 27-Jan-26 | Incline | Incline | |
+| 17-Feb-26 | Standing | Standing | |
+| 14-Mar-26 | Alt | Alt | |
+| 19-Mar-26 | Incline | Incline | |
+| 02-Apr-26 | Incline | Incline | |
+
+---
+
+## Preacher Curls (Machine)
+
+**Starting weight:** 40 lbs | **Current working range:** 65-70 lbs
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 08-Jan-24 | 45-15 / 50-12 / 50-7(drop) | |
+| 15-Jan-24 | 45-15 / 45-8 / 40-12 | |
+| 31-Jan-24 | 40-12 / 40-12 / 35-13 | |
+| 07-Feb-24 | 40-15 / 45-12 / 40- | |
+| 14-Feb-24 | 45-12 / 45-11 / 40-12 | Start at 40 |
+| 22-Feb-24 | 40-18 / 45-13 / 45-12 | |
+| 15-Mar-24 | 40-18 / 45-13 / 45-12 | |
+| 31-May-24 | 40-18 / 45-14(drop by end) / 45-10 | 40 max |
+| 18-Jun-24 | 40-16 / 45-10(ok) / 45-7(drop) | |
+| 03-Jul-24 | 40-18 / 45-15(range) / 45-14(same) | 45 max |
+| 13-Aug-24 | 45-14 / 50-12 / 50-10 | |
+| 23-Aug-24 | 45-20 / 50-15(LR) / 50-8(drop) | Working: 45/45/45 |
+| 29-Aug-24 | 45-20 / 50-15(LR) / 50-8(drop) | |
+| 06-Sep-24 | 45-20 / 50-15 / 50-15(LR/good tempo) | |
+| 15-Sep-24 | 45-18 / 50-15(LR) / 50-15 | |
+| 09-Oct-24 | 45-18 / 50-15(LR) / 50-15 | |
+| 18-Oct-24 | 45-18 / 50-15(LR) / 50-15 | |
+| 25-Oct-24 | ss bent-over rev: 45-18 / 50-15(LR) / 50-15 / 55-11 | |
+| 22-Nov-24 | 45-18 / 50-15(LR) / 50-15 | |
+| 02-Dec-24 | 50-20 / 60-12 / 60-9(drop) | Working: 60 |
+| 08-Dec-24 | 65-15 / 70-12 / 70-12(LR by end) | |
+| 24-Dec-24 | 65-15 / 70-12 / 70-12(LR by end) | |
+| 23-Jan-25 | 65-15 / 70-12 / 70-12(LR by end) | |
+| 05-Feb-25 | 65-15 / 70-12 / 70-12(LR by end) | |
+| 14-Feb-25 | 65-15 / 70-12 / 70-12(LR by end) | |
+| 20-Feb-25 | 65-15 / 70-12 / 70-12(LR by end) | |
+| 04-Mar-25 | 65-15 / 70-12 / 70-12(LR by end) | |
+| 14-Mar-25 | 65-15 / 70-12 / 70-12(LR by end) | |
+| 26-Mar-25 | 65-15 / 70-12 / 70-12(LR by end) | |
+| 09-Apr-25 | 65-15 / 70-12 / 70-12(LR by end) | |
+| 05-May-25 | 65-15 / 70-12 / 70-12(LR by end) | |
+| 05-Jun-25 | 65-15 / 70-12 / 70-12(LR by end) | |
+| 24-Jun-25 | 65-15 / 70-12 / 70-12(LR by end) | |
+| 29-Jul-25 | 65-15 / 70-12 / 70-12(LR by end) | |
+| 20-Aug-25 | 65-15 / 70-12 / 70-12(LR by end) | |
+| 28-Aug-25 | 65-15 / 70-12 / 70-12(LR by end) | |
+| 14-Oct-25 | 65-15 / 70-12 / 70-12(LR by end) | |
+| 01-Dec-25 | 65-15 / 70-12 / 70-12(LR by end) | M goes into extension at L wrist, cue before |
+| 03-Feb-26 | 65-15 / 70-12 / 70-12(LR by end) | |
+
+---
+
+## Spider Curls
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 02-Feb-24 | 15-12 / 15-12 / 15-15 | |
+| 31-Dec-23 | 10-16(lite) / 15-12 / 15-12(nc) | |
+| 02-Feb-24 | 15-15 / 15-15 / 15-12(cued not to swing at bottom) | |
+| 14-Feb-24 | 15-15 / 15-14 / 15-16(looked ok) | Hard to keep elbow forward. Get side view. Working: 15/20/20 |
+| 10-Nov-25 | 15-18 / 20-13 / 20-15 | |
+
+---
+
+## Rope Curls (Cable)
+
+**Working range:** 70-90 lbs
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 18-Oct-22 | 50-11 / 50-11 / 50-8 | |
+| 08-Nov-22 | 50-12 / 40-15 / 40-15 | |
+| 21-Jan-23 | 25-10 / 20-14 / 20-15 | |
+| 02-Jan-24 | 5-15 / 7-15 / 8-15 | |
+| 23-Jan-24 | 40-15 / 45 / 50-15 | |
+| 02-Mar-24 | 45-15 / 60 / 60 | |
+| 26-Mar-24 | 60-20 / 70-15(nc) / 70-12(c) | |
+| 31-May-24 | 60-15(c/spine comp) / 60-15(same) | |
+| 27-Jun-24 | 60-15 / 70-12 / 70-12 | |
+| 13-Aug-24 | 60-18(hard cue/ok) / 70-15(last 2 back bent) / 70-14(drop) | |
+| 03-Jan-25 | 45-18 / 55-20 / 70-15(0) | Working: 70/75/80 |
+| 29-Jul-25 | 70-15 / 80-14 / 90-5(drop) | |
+| 20-Aug-25 | 80-15 / 90-10 / 90-10 | |
+| 14-Oct-25 | 80-15 / 90-10 / 90-10 | pain on R wrist, shifting to preacher |
+
+---
+
+## DB Hammer Curls
+
+**Starting weight:** 15 lbs | **Current working range:** 20-25 lbs
+**Variants:** Standing, seated double, alt, incline, spider, waiter's
+
+| Date | Sets (weight-reps) | Variant | Notes |
+|------|-------------------|---------|-------|
+| 11-Oct-22 | 15-8 / 15-9 / 15-7(drop) | - | |
+| 31-Oct-22 | 15-12 / 15-12 / 15-10 | - | |
+| 14-Dec-22 | Waiter's: 45/30/30/25 | Waiter's | |
+| 26-Jan-23 | 15-10 / 15-11 / 15-9(drop) | - | |
+| 09-Feb-23 | 15-15 / 20-10(drop) / 20-8(drop) | - | |
+| 31-Dec-23 | Post spiders: 15-12 / 15-12(max grind) / 15-9 | - | |
+| 08-Jan-24 | 15-11 / 10-15 / 10-15 | - | |
+| 15-Jan-24 | 10-15 / 15-15 / 15-11 | - | |
+| 07-Feb-24 | 15-15 / 15-15 / 15-15 | - | |
+| 22-Feb-24 | 20-9 / 15-15 / 15-15 / 20-6(drop) | - | |
+| 15-Mar-24 | 15-15 / 15-15 / 15-15 | - | |
+| 05-Jun-24 | 15-16 / 20- | - | |
+| 03-Jul-24 | 15-15 / 20-11 / 20-10 | - | |
+| 23-Aug-24 | 15-15 / 15-15 / 15-15 | - | |
+| 29-Aug-24 | 15-15 / 15-15 / 15-15 | - | |
+| 15-Sep-24 | 15-15 / 20-11 / 20-11 | - | |
+| 23-Sep-24 | 20-12 / 20-12 / 20-10 / 15-15 | - | |
+| 02-Oct-24 | 20-12 / 20-13 / 20-12 | - | |
+| 09-Oct-24 | 20-15(back lean) / 20-12(hard cue) / 15-14 | - | 15 strict first |
+| 25-Oct-24 | 20-15(back lean) / 20-10 / 20-8(perf form/hard cue) | - | Cue to ascent slow, no speed |
+| 18-Dec-24 | 20-18(perf) / 25-7(drop) / 20-12 | Mixed | |
+| 09-Jan-25 | 20-18(perf) / 25-7(drop) / 20-12 | - | |
+| 05-Feb-25 | Spider: 15-15 / 15-14 / 15-12 | Spider | |
+| 20-Feb-25 | Alt: 25-8 / 20- | Alt | |
+| 04-Mar-25 | Seated double: 25-8 / 20-12 / 20-12 | Seated | |
+| 14-Mar-25 | Alt: 20-13 / 20-12 | Alt | |
+| 26-Mar-25 | 20-13 / 20-12 | - | |
+| 09-Apr-25 | Alt: 20-13 / 20-12 | Alt | |
+| 26-May-25 | Alt: 20-15 / 20-12 / 20-10 | Alt | |
+| 10-Jul-25 | Seated double: 20-18 / 25-8 / 25-13 | Seated | |
+| 07-Aug-25 | 20-18 / 25-8 / 25-13 | Seated | |
+| 28-Aug-25 | Alt: 25-12 / 25-10 / 20-double-15 | Alt | |
+| 21-Sep-25 | 25-12 / 25-10 / 20-double-15 | - | |
+| 25-Oct-25 | 25-12 / 25-10 / 20-double-15 | - | |
+| 31-Oct-25 | 25-12 / 25-10 / 20-double-15 | - | |
+| 10-Nov-25 | Incline | Incline | |
+| 24-Nov-25 | Seated double | Seated | |
+| 09-Dec-25 | ss forearm flexion (15s) | - | |
+| 22-Dec-25 | 25-12 / 25-10 / 20-double-15 | - | |
+| 08-Jan-26 | 25-12 / 25-10 / 20-double-15 | - | |
+| 03-Feb-26 | 25-12 / 25-10 / 20-double-15 | - | |
+
+---
+
+## EZ Bar Curls
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 18-Oct-22 | 10each-12 / 10each-10 / 10each-10(0) | |
+| 26-Jan-23 | Incline: 15-15 / 15-15 / 20-5(drop) | |
+| 02-Feb-23 | Standing double: 15-15 / 20-10(alt reps at 7) / 20-10(cont) | |
+
+---
+
+## Waiters Hold
+
+| Date | Sets (weight-duration) | Notes |
+|------|----------------------|-------|
+| 03-Oct-22 | 15-60sec | |
+| 31-Oct-22 | 20-32sec | |
+| 02-Feb-24 | 20-40s / 20-40s | |
+| 21-Feb-24 | 20-40s / 20-27s | |
+| 15-Jan-25 | 25-40s / 25-30s / 25-30s | |
+
+---
+
+## Farmers Walk / Carry
+
+| Date | Sets (weight-duration) | Notes |
+|------|----------------------|-------|
+| 29-Feb-24 | 50-31s / 50-30s / 45-47s | |
+| 25-Oct-24 | - | |
+
+---
+
+## Hang
+
+| Date | Duration | Notes |
+|------|----------|-------|
+| 03-Sep-24 | 36s / 22s / 25s | |`,
+
+forearms: `# Forearm & Grip Exercises
+
+> **Format:** \`date: weight(lbs)-reps/reps/reps\`
+
+---
+
+## Straight Arm Cable Forearm Flexion
+
+**Working range:** 80-90 lbs
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 28-Dec-25 | 55-18 / 70-18 / 90-15 | Working: 80/90/90 |
+| 29-Jan-26 | (session vi) | |
+| 18-Feb-26 | ss Pinch Hold: single 45 plate | Legs day |
+
+---
+
+## Cable Forearm Extension
+
+| Date | Sets (weight-reps) | Notes |
+|------|-------------------|-------|
+| 18-Feb-26 | 30-12 / 30-11 | |`
+};
+
+// ============================================================
+// CONSTANTS
+// ============================================================
+const INJURIES = [
+  { area: "L Knee", start: "2022-07-01", details: "Pain during workouts" },
+  { area: "L Delt", start: "2022-07-01", details: "Accident 1-2yrs back, hurts 3/10" },
+  { area: "Groin", start: "2019-01-01", details: "Football injury" },
+  { area: "R Knee", start: "2023-06-01", details: "Rock climbing" },
+  { area: "L Delt", start: "2025-01-01", ongoing: true, details: "Ongoing rehab, pinch" },
+  { area: "L Wrist", start: "2025-06-01", ongoing: true, details: "Extension pain" },
+  { area: "Low Back", start: "2024-01-01", details: "Pump during compounds" }
+];
+
+const MESOCYCLES = [
+  { name: "I", start: "2022-08-01", end: "2022-09-12", color: "#60a5fa" },
+  { name: "II", start: "2022-09-13", end: "2023-12-19", color: "#a78bfa" },
+  { name: "IIIa", start: "2023-12-20", end: "2024-02-21", color: "#f472b6" },
+  { name: "IIIb", start: "2024-02-22", end: "2024-05-22", color: "#fb923c" },
+  { name: "RE", start: "2024-05-23", end: "2024-06-25", color: "#4b5563" },
+  { name: "IV", start: "2024-06-26", end: "2025-12-27", color: "#34d399" },
+  { name: "V", start: "2025-12-28", end: "2026-12-31", color: "#fbbf24" }
+];
+
+const BODYWEIGHT = [
+  { date: "2025-01-17", kg: 79.5 },
+  { date: "2025-03-06", kg: 78.0 },
+  { date: "2025-08-28", kg: 80.3 }
+];
+
+const GROUP_META = {
+  chest:     { label: "Chest",    accent: "#f97316", icon: "💪" },
+  back:      { label: "Back",     accent: "#06b6d4", icon: "🔙" },
+  legs:      { label: "Legs",     accent: "#8b5cf6", icon: "🦵" },
+  shoulders: { label: "Shoulders",accent: "#eab308", icon: "🏋" },
+  triceps:   { label: "Triceps",  accent: "#ef4444", icon: "💥" },
+  biceps:    { label: "Biceps",   accent: "#22c55e", icon: "💚" },
+  forearms:  { label: "Forearms", accent: "#ec4899", icon: "✊" }
+};
+
+const SET_COLORS = ['#60a5fa','#a78bfa','#f472b6','#fb923c'];
+const MONTH_MAP = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+
+// ============================================================
+// PARSER
+// ============================================================
+function parseDate(s) {
+  if (!s) return null;
+  s = s.trim();
+  const m = s.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{2})$/);
+  if (!m) return null;
+  const day = parseInt(m[1],10);
+  const mon = MONTH_MAP[m[2]];
+  if (mon === undefined) return null;
+  const yr = 2000 + parseInt(m[3],10);
+  return new Date(yr, mon, day);
+}
+
+function parseSetString(raw, prevWeight) {
+  raw = raw.trim();
+  if (!raw) return null;
+  // Skip text-only entries
+  if (/^(Knee down|Dynamic|Prone|off|back off|Hold|Floor bridge|Staggered|Assisted|Inverted|ss |Tried|Plate ss|Rod$|Single$|Mix$|Wide$|Supine$|Close$|Hammer$|Goblet$|Smith$|DB$|Seated$|Standing$|Incline$|Alt$|Double$|Legs\+|Rev$|-$)/i.test(raw)) return null;
+  if (/^\d+:\d+$/.test(raw) || /sec$/i.test(raw)) return null; // duration
+  if (/^(m-|x\d|session|\(session)/.test(raw)) return null;
+
+  // Arrow splits: take part after ->
+  if (raw.includes('->')) {
+    const parts = raw.split('->');
+    raw = parts[parts.length - 1].trim();
+  }
+
+  // Prefix stripping: "Cable: 25-10", "Paused: 45-15", "Inc: empty", "Flat: empty", etc.
+  raw = raw.replace(/^[A-Za-z][A-Za-z0-9 ]*:\s*/,'');
+
+  // "empty" = warmup, no weight
+  if (/^empty$/i.test(raw)) return { weight: 0, reps: 0, warmup: true, drop: false, pain: 0 };
+
+  let warmup = false, drop = false, pain = 0;
+  // Check warmup
+  if (/\bwu\b/i.test(raw)) warmup = true;
+  // Check drop
+  if (/\bdrop\b/i.test(raw)) drop = true;
+  // Pain rating
+  const painMatch = raw.match(/(\d+)\/10/);
+  if (painMatch) pain = parseInt(painMatch[1],10);
+
+  // Strip parenthetical annotations for numeric extraction
+  let clean = raw.replace(/\([^)]*\)/g, '').trim();
+
+  // "Wx3" shorthand: weight x N sets
+  const wxn = clean.match(/^(\d+\.?\d*)s?\s*x\s*(\d+)$/i);
+  if (wxn) {
+    return { weight: parseFloat(wxn[1]), reps: 0, warmup, drop, pain, shorthand: parseInt(wxn[2],10) };
+  }
+
+  // "90-wu" or "wu-80"
+  const wuMatch = clean.match(/^(\d+\.?\d*)s?-wu$/i) || clean.match(/^wu-(\d+\.?\d*)s?$/i);
+  if (wuMatch) {
+    return { weight: parseFloat(wuMatch[1]), reps: 0, warmup: true, drop, pain };
+  }
+
+  // "bw-15" bodyweight
+  const bwMatch = clean.match(/^bw-(\d+)/i);
+  if (bwMatch) {
+    return { weight: 0, reps: parseInt(bwMatch[1],10), warmup, drop, pain, bodyweight: true };
+  }
+  if (/^bw$/i.test(clean)) {
+    return { weight: 0, reps: 0, warmup, drop, pain, bodyweight: true };
+  }
+
+  // Standard: "35s-15" or "35-15" or "12.5-15"
+  const stdMatch = clean.match(/^(\d+\.?\d*)s?-(\d+)/);
+  if (stdMatch) {
+    return { weight: parseFloat(stdMatch[1]), reps: parseInt(stdMatch[2],10), warmup, drop, pain };
+  }
+
+  // Weight only: "40" or "40s"
+  const woMatch = clean.match(/^(\d+\.?\d*)s?$/);
+  if (woMatch) {
+    return { weight: parseFloat(woMatch[1]), reps: 0, warmup, drop, pain };
+  }
+
+  // Reps only (carry-forward): "12" or "15"
+  const roMatch = clean.match(/^(\d+)$/);
+  if (roMatch && prevWeight !== null) {
+    return { weight: prevWeight, reps: parseInt(roMatch[1],10), warmup, drop, pain };
+  }
+
+  return null;
+}
+
+function parseSetsCell(cell) {
+  if (!cell) return [];
+  // Shorthand expansion: "85x3" or "85sx3" -> 3 sets of {weight:85, reps:0}
+  const trimmed = cell.trim();
+  const shMatch = trimmed.match(/^(\d+(?:\.\d+)?)(s?)x(\d+)$/);
+  if (shMatch) {
+    const weight = parseFloat(shMatch[1]);
+    const count = parseInt(shMatch[3], 10);
+    const expanded = [];
+    for (let i = 0; i < count; i++) {
+      expanded.push({ weight, reps: 0, warmup: false, drop: false, pain: 0 });
+    }
+    return expanded;
+  }
+  const parts = cell.split(/\s*\/\s*/);
+  const sets = [];
+  let prevWeight = null;
+  for (const p of parts) {
+    const s = parseSetString(p, prevWeight);
+    if (s) {
+      if (s.weight > 0) prevWeight = s.weight;
+      if (s.shorthand) {
+        const n = s.shorthand;
+        delete s.shorthand;
+        for (let i = 0; i < n; i++) sets.push({ ...s });
+      } else {
+        sets.push(s);
+      }
+    }
+  }
+  if (sets.length === 0 && trimmed.length > 0) {
+    return [{ weight: 0, reps: 0, warmup: false, drop: false, pain: 0, textOnly: true, rawText: trimmed }];
+  }
+  return sets;
+}
+
+function estimateE1RM(weight, reps) {
+  if (!weight || weight <= 0) return 0;
+  if (!reps || reps <= 0) return weight; // weight-only = conservative floor
+  if (reps === 1) return weight;
+  return Math.round(weight * (1 + reps / 30));
+}
+
+function computeSessionMetrics(sets) {
+  const working = sets.filter(s => !s.warmup && !s.textOnly);
+  let maxWeight = 0, totalVolume = 0, bestE1RM = 0;
+  const repBuckets = { low: 0, mid: 0, high: 0 };
+  for (const s of working) {
+    if (s.weight > maxWeight) maxWeight = s.weight;
+    if (s.weight > 0 && s.reps > 0) totalVolume += s.weight * s.reps;
+    const e = estimateE1RM(s.weight, s.reps);
+    if (e > bestE1RM) bestE1RM = e;
+    if (s.reps > 0) {
+      if (s.reps < 8) repBuckets.low++;
+      else if (s.reps <= 12) repBuckets.mid++;
+      else repBuckets.high++;
+    }
+  }
+  const painScores = sets.filter(s => s.pain > 0).map(s => s.pain);
+  return { maxWeight, totalVolume, bestE1RM, repBuckets, maxPain: painScores.length ? Math.max(...painScores) : 0 };
+}
+
+// ============================================================
+// TRAINING CONTEXT EXTRACTION (Coach-level note parsing)
+// ============================================================
+function extractTrainingContext(notes, setsRaw) {
+  const combined = (notes + ' ' + setsRaw).toLowerCase();
+  const ctx = { angle: null, dominance: null, stance: null, tempo: null, painArea: null, formCues: [] };
+
+  // Angle/degree extraction (incline bench angles, OHP seat angles, etc.)
+  const degMatch = combined.match(/(\d+)\s*(?:deg|degree)/);
+  if (degMatch) ctx.angle = parseInt(degMatch[1], 10);
+  // Notes often just say "15 degrees", "30 degrees", "45 degrees", "75 degrees", "90 degrees"
+  const degNotesMatch = notes.match(/\b(15|30|45|60|75|90)\s*degrees?\b/i);
+  if (degNotesMatch) ctx.angle = parseInt(degNotesMatch[1], 10);
+  // Also extract from raw shorthand like "15:" or "30:" at start of notes
+  if (!ctx.angle) {
+    const shortAngle = notes.match(/^(15|30|45|60|75|90)\b/);
+    if (shortAngle) ctx.angle = parseInt(shortAngle[1], 10);
+  }
+  // "low incline" ~ 15-30, "flat" ~ 0
+  if (!ctx.angle && /\bflat\b/i.test(notes)) ctx.angle = 0;
+  if (!ctx.angle && /\blow\s*inc/i.test(notes)) ctx.angle = 15;
+
+  // Dominance - which muscle was targeted as primary mover
+  if (/chest\s*dom/i.test(combined)) ctx.dominance = 'Chest';
+  else if (/delt\s*dom/i.test(combined) || /shoulder\s*dom/i.test(combined)) ctx.dominance = 'Delt';
+  else if (/back\s*dom/i.test(combined)) ctx.dominance = 'Back';
+  else if (/\bmix/i.test(combined)) ctx.dominance = 'Mixed';
+
+  // Stance/position (squats, lunges)
+  if (/\bstanding\b/i.test(notes)) ctx.stance = 'Standing';
+  else if (/\bseated\b/i.test(notes)) ctx.stance = 'Seated';
+  else if (/\bsingle\b/i.test(notes)) ctx.stance = 'Single Arm';
+
+  // Tempo cues
+  if (/\bpaused\b/i.test(combined)) ctx.tempo = 'Paused';
+  else if (/\bslow\b/i.test(combined)) ctx.tempo = 'Slow';
+  else if (/\btempo\b/i.test(combined)) ctx.tempo = 'Tempo';
+
+  // Pain area extraction
+  if (/l\s*delt/i.test(combined) && /pain|pinch|discomf|hurt/i.test(combined)) ctx.painArea = 'L Delt';
+  else if (/l\s*wrist/i.test(combined) && /pain|pinch|discomf|incr/i.test(combined)) ctx.painArea = 'L Wrist';
+  else if (/l\s*knee|r\s*knee/i.test(combined) && /pain|pinch|discomf/i.test(combined)) ctx.painArea = 'Knee';
+  else if (/low\s*back|lumbar|lb\s*pump/i.test(combined)) ctx.painArea = 'Low Back';
+  else if (/ham/i.test(combined) && /pain|sens|pull|episode/i.test(combined)) ctx.painArea = 'Hamstring';
+
+  // Key form cues (what the coach was working on)
+  if (/hard\s*cue/i.test(combined)) ctx.formCues.push('Hard cue');
+  if (/\barch\b/i.test(combined)) ctx.formCues.push('Arch');
+  if (/elbow/i.test(combined)) ctx.formCues.push('Elbow position');
+  if (/range\s*drop|lr\b|low\s*range/i.test(combined)) ctx.formCues.push('Range issue');
+  if (/\brehab\b/i.test(combined)) ctx.formCues.push('Rehab');
+
+  return ctx;
+}
+
+function parseFile(content) {
+  const exercises = [];
+  // Split on ## headers
+  const sections = content.split(/\n## /);
+  for (let i = 1; i < sections.length; i++) {
+    const sec = sections[i];
+    const nameEnd = sec.indexOf('\n');
+    const name = sec.substring(0, nameEnd).trim();
+    // Find table rows
+    const lines = sec.split('\n');
+    let hasVariantCol = false;
+    // Check header row for 4-column variant
+    for (const line of lines) {
+      if (/^\|.*\|.*Variant|Grip|Attachment.*\|/i.test(line)) { hasVariantCol = true; break; }
+      // Also detect by header cell count
+      if (/^\|\s*Date\s*\|/.test(line)) {
+        const cells = line.split('|').filter(c => c.trim());
+        if (cells.length >= 4) hasVariantCol = true;
+        break;
+      }
+    }
+    const sessions = [];
+    for (const line of lines) {
+      if (!line.startsWith('|')) continue;
+      if (/^\|[\s-]+\|/.test(line)) continue; // separator
+      if (/^\|\s*Date\s*\|/.test(line)) continue; // header
+      const cells = line.split('|').filter(c => c.trim()).map(c => c.trim());
+      if (cells.length < 2) continue;
+      const date = parseDate(cells[0]);
+      if (!date) continue;
+      const setsRaw = cells[1];
+      let variant = '';
+      let notes = '';
+      if (hasVariantCol && cells.length >= 4) {
+        variant = cells[2] || '';
+        notes = cells[3] || '';
+      } else if (hasVariantCol && cells.length === 3) {
+        variant = cells[2] || '';
+      } else {
+        notes = cells[cells.length > 2 ? 2 : -1] || '';
+        if (cells.length > 2) notes = cells[2];
+      }
+      if (variant === '-') variant = '';
+      const sets = parseSetsCell(setsRaw);
+      const metrics = computeSessionMetrics(sets);
+      const context = extractTrainingContext(notes, setsRaw);
+      sessions.push({ date, setsRaw, sets, variant, notes, ...metrics, context });
+    }
+    sessions.sort((a,b) => a.date - b.date);
+    exercises.push({ name, sessions, hasVariantCol });
+  }
+  return exercises;
+}
+
+// ============================================================
+// VARIANT SPLITTING - exercises where variants are fundamentally different movements
+// ============================================================
+// Key: exercise name (lowercase). Value: object mapping variant substrings to split group names.
+// Sessions whose variant matches a key get split into a separate exercise entry.
+const SPLIT_RULES = {
+  'tricep pushdown': {
+    groups: {
+      'Rod': ['Rod', 'rod'],
+      'Rope': ['Rope', 'rope', '2 ropes', 'New longer rope'],
+      'Single': ['Single', 'single'],
+      'V-Grip': ['V', 'v']
+    },
+    fallbackGroup: 'Rod'
+  },
+  'cable curls': {
+    groups: {
+      'Rod': ['Rod', 'rod'],
+      'Rope': ['Rope', 'rope'],
+      'Reverse': ['Rev', 'rev'],
+      'D-Handle': ['D-handle', 'd-handle']
+    },
+    fallbackGroup: 'Rod'
+  },
+  'cable close grip pulldown': {
+    groups: {
+      'Bilateral': ['Ds', 'Supine', 'Hammer', 'supine', 'hammer', 'close'],
+      'Single Arm': ['Single', 'single']
+    },
+    fallbackGroup: 'Bilateral'
+  },
+  'seated machine row': {
+    groups: {
+      'Bilateral': ['Close', 'Wide', 'close', 'wide', 'Lat pulldown'],
+      'Single Arm': ['Single', 'single']
+    },
+    fallbackGroup: 'Bilateral'
+  },
+  'shrugs': {
+    groups: {
+      'DB': ['DB', 'db'],
+      'Cable': ['Cable', 'cable', 'Behind']
+    },
+    fallbackGroup: 'DB'
+  },
+  'chest fly': {
+    groups: {
+      'Machine': ['Machine', 'machine'],
+      'Cable': ['Cable', 'cable', 'Bottom to top', 'Bent-over'],
+      'DB': ['DB', 'db']
+    },
+    fallbackGroup: 'Machine'
+  },
+  'front raises': {
+    groups: {
+      'Plate': ['Plate', 'plate'],
+      'Cable': ['Rope', 'rope', 'cable']
+    },
+    fallbackGroup: 'DB'
+  },
+  'calf raises': {
+    groups: {
+      'Smith': ['Smith', 'smith'],
+      'Machine': ['Leg press', 'leg press', 'Straight leg', 'seated']
+    },
+    fallbackGroup: 'Smith'
+  }
+};
+
+function classifyVariant(exerciseName, variant, setsRaw, notes) {
+  const lowerName = exerciseName.toLowerCase();
+  const rule = Object.entries(SPLIT_RULES).find(([key]) => lowerName.includes(key));
+  if (!rule) return null;
+  const [, config] = rule;
+  const combined = (variant + ' ' + setsRaw + ' ' + notes);
+  for (const [groupName, matchers] of Object.entries(config.groups)) {
+    for (const m of matchers) {
+      if (m && combined.includes(m)) return groupName;
+    }
+  }
+  return config.fallbackGroup;
+}
+
+function splitExercisesByVariant(exercises) {
+  const result = [];
+  for (const ex of exercises) {
+    const lowerName = ex.name.toLowerCase();
+    const needsSplit = Object.keys(SPLIT_RULES).some(key => lowerName.includes(key));
+    if (!needsSplit || ex.sessions.length === 0) {
+      result.push(ex);
+      continue;
+    }
+    // Group sessions by their split classification
+    const groups = {};
+    for (const s of ex.sessions) {
+      const cls = classifyVariant(ex.name, s.variant, s.setsRaw, s.notes) || 'Other';
+      if (!groups[cls]) groups[cls] = [];
+      groups[cls].push(s);
+    }
+    // Only split if we actually have multiple groups with data
+    const validGroups = Object.entries(groups).filter(([, sess]) => sess.length > 0);
+    if (validGroups.length <= 1) {
+      result.push(ex);
+      continue;
+    }
+    for (const [groupName, sessions] of validGroups) {
+      sessions.sort((a, b) => a.date - b.date);
+      result.push({
+        name: `${ex.name} (${groupName})`,
+        sessions,
+        hasVariantCol: ex.hasVariantCol,
+        parentName: ex.name,
+        splitGroup: groupName
+      });
+    }
+  }
+  return result;
+}
+
+// ============================================================
+// PARSE ALL DATA
+// ============================================================
+const DATA = {};
+let allDates = [];
+let totalExercises = 0;
+const uniqueDateSet = new Set();
+
+for (const [group, content] of Object.entries(RAW_FILES)) {
+  const parsed = parseFile(content);
+  DATA[group] = splitExercisesByVariant(parsed);
+  for (const ex of DATA[group]) {
+    totalExercises++;
+    for (const s of ex.sessions) {
+      allDates.push(s.date);
+      // A session = one unique training day (YYYY-MM-DD)
+      uniqueDateSet.add(s.date.toISOString().slice(0, 10));
+    }
+  }
+}
+const totalSessions = uniqueDateSet.size;
+allDates.sort((a,b) => a - b);
+const firstDate = allDates[0];
+const lastDate = allDates[allDates.length - 1];
+
+// Compute avg sessions per week
+const totalWeeks = firstDate && lastDate ? daysBetween(firstDate, lastDate) / 7 : 1;
+const avgPerWeek = (totalSessions / totalWeeks).toFixed(1);
+
+// ============================================================
+// EXERCISE ANALYSIS (PR detection, progressive overload, trends)
+// ============================================================
+function analyzeExercise(ex) {
+  let allTimePR = 0, prDate = null, allTimeE1RM = 0, e1rmDate = null;
+
+  let runningMaxWeight = 0, runningMaxE1RM = 0;
+  for (let i = 0; i < ex.sessions.length; i++) {
+    const s = ex.sessions[i];
+    if (s.maxWeight > runningMaxWeight) {
+      runningMaxWeight = s.maxWeight;
+      s.isWeightPR = true;
+    }
+    if (s.bestE1RM > runningMaxE1RM) {
+      runningMaxE1RM = s.bestE1RM;
+      s.isE1RMPR = true;
+    }
+  }
+
+  allTimePR = runningMaxWeight;
+  allTimeE1RM = runningMaxE1RM;
+  for (const s of ex.sessions) {
+    if (s.maxWeight === allTimePR && !prDate) prDate = s.date;
+    if (s.bestE1RM === allTimeE1RM && !e1rmDate) e1rmDate = s.date;
+  }
+
+  // Plateau detection: sessions since last e1RM PR
+  const validSessions = ex.sessions.filter(s => s.bestE1RM > 0);
+  let lastPRIdx = -1;
+  for (let i = validSessions.length - 1; i >= 0; i--) {
+    if (validSessions[i].isE1RMPR) { lastPRIdx = i; break; }
+  }
+  const sessionsSincePR = lastPRIdx >= 0 ? validSessions.length - 1 - lastPRIdx : validSessions.length;
+
+  // Trend: compare avg e1RM of last 4 sessions to prior 4
+  let trend = 'neutral';
+  if (validSessions.length >= 8) {
+    const recent4 = validSessions.slice(-4).reduce((a,s) => a + s.bestE1RM, 0) / 4;
+    const prior4 = validSessions.slice(-8, -4).reduce((a,s) => a + s.bestE1RM, 0) / 4;
+    if (recent4 > prior4 * 1.03) trend = 'up';
+    else if (recent4 < prior4 * 0.97) trend = 'down';
+  } else if (validSessions.length >= 4) {
+    const half = Math.floor(validSessions.length / 2);
+    const recent = validSessions.slice(half).reduce((a,s) => a + s.bestE1RM, 0) / (validSessions.length - half);
+    const older = validSessions.slice(0, half).reduce((a,s) => a + s.bestE1RM, 0) / half;
+    if (recent > older * 1.03) trend = 'up';
+    else if (recent < older * 0.97) trend = 'down';
+  }
+
+  // Status label
+  let status, statusColor;
+  if (sessionsSincePR <= 3) { status = 'Progressing'; statusColor = '#22c55e'; }
+  else if (sessionsSincePR <= 6) { status = 'Maintaining'; statusColor = '#eab308'; }
+  else if (sessionsSincePR <= 10) { status = 'Plateaued'; statusColor = '#f97316'; }
+  else { status = 'Stalled'; statusColor = '#ef4444'; }
+
+  // Last session info
+  const lastSession = ex.sessions[ex.sessions.length - 1];
+  const daysSinceLast = lastSession ? Math.round((new Date() - lastSession.date) / 86400000) : null;
+  // Current working max (max of last 3 sessions)
+  const last3 = validSessions.slice(-3);
+  const currentMax = last3.length ? Math.max(...last3.map(s => s.maxWeight)) : 0;
+
+  ex.analysis = {
+    allTimePR, prDate, allTimeE1RM, e1rmDate,
+    sessionsSincePR, trend, status, statusColor,
+    daysSinceLast, currentMax,
+    totalValidSessions: validSessions.length
+  };
+}
+
+// Run analysis on all exercises
+for (const group of Object.values(DATA)) {
+  for (const ex of group) analyzeExercise(ex);
+}
+
+function slugify(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+function fmt(d) { if (!d) return ''; return d.toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}); }
+function daysBetween(a,b) { return Math.round((b-a)/(86400000)); }
+
+function getCurrentMeso() {
+  const now = new Date();
+  for (const m of MESOCYCLES) {
+    if (now >= new Date(m.start) && now <= new Date(m.end)) return m.name;
+  }
+  return MESOCYCLES[MESOCYCLES.length-1].name;
+}
+
+// ============================================================
+// CHART GLOBALS
+// ============================================================
+Chart.defaults.color = '#9898b0';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+
+let currentChart = null;
+function destroyChart() { if (currentChart) { currentChart.destroy(); currentChart = null; } }
+
+// ============================================================
+// SPARKLINE DRAWING
+// ============================================================
+function drawSparkline(canvas, data, color) {
+  if (!canvas || !data || data.length < 2) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width = canvas.offsetWidth * 2;
+  const h = canvas.height = canvas.offsetHeight * 2;
+  ctx.scale(2, 2);
+  const dw = canvas.offsetWidth, dh = canvas.offsetHeight;
+  const vals = data.filter(v => v > 0);
+  if (vals.length < 2) return;
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const range = max - min || 1;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  for (let i = 0; i < vals.length; i++) {
+    const x = (i / (vals.length - 1)) * dw;
+    const y = dh - ((vals[i] - min) / range) * (dh - 4) - 2;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+}
+
+// ============================================================
+// NAVIGATION + RENDERING
+// ============================================================
+function buildNav() {
+  const nav = document.getElementById('nav-items');
+  let html = `<div class="nav-item" data-view="dashboard" style="border-left-color: #60a5fa;">Dashboard</div>`;
+  for (const [key, meta] of Object.entries(GROUP_META)) {
+    const count = DATA[key] ? DATA[key].length : 0;
+    html += `<div class="nav-item" data-view="${key}" style="border-left-color: ${meta.accent};">
+      ${meta.label} <span class="badge">${count}</span></div>`;
+  }
+  nav.innerHTML = html;
+  nav.querySelectorAll('.nav-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const view = el.dataset.view;
+      if (view === 'dashboard') location.hash = 'dashboard';
+      else location.hash = view;
+    });
+  });
+}
+
+function setActiveNav(view) {
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.view === view);
+  });
+}
+
+function route() {
+  destroyChart();
+  const hash = location.hash.slice(1) || 'dashboard';
+  const parts = hash.split('/');
+  if (parts[0] === 'dashboard' || !parts[0]) {
+    setActiveNav('dashboard');
+    renderDashboard();
+  } else if (parts.length === 1 && GROUP_META[parts[0]]) {
+    setActiveNav(parts[0]);
+    renderGroup(parts[0]);
+  } else if (parts.length === 2 && GROUP_META[parts[0]]) {
+    setActiveNav(parts[0]);
+    renderExercise(parts[0], parts[1]);
+  } else {
+    setActiveNav('dashboard');
+    renderDashboard();
+  }
+}
+
+// ============================================================
+// TRAINING HEATMAP
+// ============================================================
+function drawHeatmap(canvas) {
+  // Compute per-date exercise counts
+  const dateCounts = {};
+  for (const group of Object.values(DATA)) {
+    for (const ex of group) {
+      for (const s of ex.sessions) {
+        const key = s.date.toISOString().slice(0,10);
+        dateCounts[key] = (dateCounts[key] || 0) + 1;
+      }
+    }
+  }
+
+  if (!firstDate || !lastDate) return;
+
+  const cellSize = 12, gap = 2, step = cellSize + gap;
+  const dayLabels = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
+  const labelWidth = 30;
+
+  // Align to start of week (Sunday)
+  const start = new Date(firstDate);
+  start.setDate(start.getDate() - start.getDay());
+  const end = new Date(lastDate);
+  end.setDate(end.getDate() + (6 - end.getDay()));
+
+  const totalDays = Math.round((end - start) / 86400000) + 1;
+  const totalWeeks = Math.ceil(totalDays / 7);
+
+  const headerHeight = 20;
+  const width = labelWidth + totalWeeks * step + 10;
+  const height = headerHeight + 7 * step + 10;
+
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = width * dpr;
+  canvas.height = height * dpr;
+  canvas.style.width = width + 'px';
+  canvas.style.height = height + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  // Day labels
+  ctx.fillStyle = '#5a5a78';
+  ctx.font = '10px Inter, sans-serif';
+  ctx.textBaseline = 'middle';
+  for (let d = 0; d < 7; d++) {
+    if (dayLabels[d]) {
+      ctx.fillText(dayLabels[d], 0, headerHeight + d * step + cellSize / 2);
+    }
+  }
+
+  // Month labels
+  let lastMonth = -1;
+  const cursor = new Date(start);
+  for (let w = 0; w < totalWeeks; w++) {
+    const weekStart = new Date(start.getTime() + w * 7 * 86400000);
+    const month = weekStart.getMonth();
+    if (month !== lastMonth) {
+      lastMonth = month;
+      const monthName = weekStart.toLocaleString('en-US', { month: 'short' });
+      ctx.fillStyle = '#5a5a78';
+      ctx.font = '10px Inter, sans-serif';
+      ctx.textBaseline = 'top';
+      ctx.fillText(monthName, labelWidth + w * step, 2);
+    }
+  }
+
+  // Draw cells
+  for (let w = 0; w < totalWeeks; w++) {
+    for (let d = 0; d < 7; d++) {
+      const dayDate = new Date(start.getTime() + (w * 7 + d) * 86400000);
+      const key = dayDate.toISOString().slice(0,10);
+      const count = dateCounts[key] || 0;
+
+      let color;
+      if (count === 0) color = '#1a1a2e';
+      else if (count <= 2) color = '#1a4731';
+      else if (count <= 4) color = 'rgba(34,197,94,0.53)';
+      else color = '#22c55e';
+
+      const x = labelWidth + w * step;
+      const y = headerHeight + d * step;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.roundRect(x, y, cellSize, cellSize, 2);
+      ctx.fill();
+    }
+  }
+}
+
+// ============================================================
+// DASHBOARD VIEW
+// ============================================================
+function renderDashboard() {
+  const main = document.getElementById('main');
+  const span = firstDate && lastDate ? `${fmt(firstDate)} - ${fmt(lastDate)}` : '';
+  const spanDays = firstDate && lastDate ? daysBetween(firstDate, lastDate) : 0;
+  const spanYrs = (spanDays / 365).toFixed(1);
+
+  let html = `<h1>Strength Training Tracker</h1>
+  <div class="subtitle">Tracking ${spanYrs} years of progression across ${totalExercises} exercises</div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="label">Training Days</div><div class="value">${totalSessions}</div><div class="detail">${avgPerWeek}/week avg</div></div>
+    <div class="stat-card"><div class="label">Training Span</div><div class="value">${spanYrs}y</div><div class="detail">${span}</div></div>
+    <div class="stat-card"><div class="label">Exercises</div><div class="value">${totalExercises}</div></div>
+    <div class="stat-card"><div class="label">Current Meso</div><div class="value">${getCurrentMeso()}</div></div>
+  </div>
+  <div class="section-title">Muscle Groups</div>
+  <div class="card-grid">`;
+
+  for (const [key, meta] of Object.entries(GROUP_META)) {
+    const exercises = DATA[key] || [];
+    let topEx = '', topWeight = 0;
+    for (const ex of exercises) {
+      for (const s of ex.sessions) {
+        if (s.maxWeight > topWeight) { topWeight = s.maxWeight; topEx = ex.name; }
+      }
+    }
+    html += `<div class="card" onclick="location.hash='${key}'">
+      <div class="accent-bar" style="background:${meta.accent}"></div>
+      <div class="card-title">${meta.label}</div>
+      <div class="card-meta">${exercises.length} exercises</div>
+      ${topEx ? `<div class="card-meta">Top: <strong>${topEx}</strong> @ <strong>${topWeight} lbs</strong></div>` : ''}
+    </div>`;
+  }
+  html += `</div>`;
+
+  // Mesocycle timeline
+  const totalMesoDays = daysBetween(new Date(MESOCYCLES[0].start), new Date(MESOCYCLES[MESOCYCLES.length-1].end));
+  html += `<div class="section-title">Mesocycle Timeline</div><div class="meso-timeline">`;
+  for (const m of MESOCYCLES) {
+    const days = daysBetween(new Date(m.start), new Date(m.end));
+    const pct = Math.max(5, (days / totalMesoDays) * 100);
+    html += `<div class="meso-bar" style="background:${m.color};flex:${pct};" title="${m.name}: ${m.start} to ${m.end}">${m.name}</div>`;
+  }
+  html += `</div>`;
+
+  // Training Activity Heatmap
+  html += `<div class="section-title">Training Activity</div>
+  <div class="heatmap-scroll"><canvas id="heatmapCanvas"></canvas></div>`;
+
+  // Bodyweight chart
+  html += `<div class="section-title">Bodyweight</div>
+  <div class="bw-chart-wrap chart-wrap"><canvas id="bwChart"></canvas></div>`;
+
+  main.innerHTML = html;
+
+  // Draw heatmap
+  requestAnimationFrame(() => {
+    const heatCanvas = document.getElementById('heatmapCanvas');
+    if (heatCanvas) drawHeatmap(heatCanvas);
+  });
+
+  // Draw bodyweight chart
+  requestAnimationFrame(() => {
+    const ctx = document.getElementById('bwChart');
+    if (!ctx) return;
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: BODYWEIGHT.map(b => b.date),
+        datasets: [{
+          label: 'Bodyweight (kg)',
+          data: BODYWEIGHT.map(b => b.kg),
+          borderColor: '#60a5fa',
+          backgroundColor: 'rgba(96,165,250,0.1)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 5,
+          pointBackgroundColor: '#60a5fa'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { type: 'time', time: { unit: 'month' }, grid: { display: false } },
+          y: { beginAtZero: false, grid: { color: 'rgba(255,255,255,0.06)' } }
+        }
+      }
+    });
+  });
+}
+
+// ============================================================
+// GROUP VIEW
+// ============================================================
+function renderGroup(group) {
+  const main = document.getElementById('main');
+  const meta = GROUP_META[group];
+  const exercises = DATA[group] || [];
+
+  let html = `<div class="breadcrumb"><a onclick="location.hash='dashboard'">Dashboard</a><span class="sep">&gt;</span>${meta.label}</div>
+  <h1 style="color:${meta.accent}">${meta.label}</h1>
+  <div class="subtitle">${exercises.length} exercises tracked</div>
+  <div class="card-grid">`;
+
+  for (const ex of exercises) {
+    const count = ex.sessions.length;
+    let maxW = 0;
+    const sparkData = [];
+    for (const s of ex.sessions) {
+      if (s.maxWeight > maxW) maxW = s.maxWeight;
+      if (s.maxWeight > 0) sparkData.push(s.maxWeight);
+    }
+    const slug = slugify(ex.name);
+    const statusHtml = ex.analysis ?
+      `<span class="status-badge" style="background:${ex.analysis.statusColor}22;color:${ex.analysis.statusColor}">${ex.analysis.status}</span>` : '';
+    html += `<div class="card" onclick="location.hash='${group}/${slug}'">
+      <div class="accent-bar" style="background:${meta.accent}"></div>
+      <div class="card-title">${ex.name}</div>
+      <div class="card-meta">${count} sessions | Max: <strong>${maxW > 0 ? maxW + ' lbs' : 'BW'}</strong>${statusHtml}</div>
+      <div class="sparkline-wrap"><canvas class="sparkline" data-color="${meta.accent}" data-values="${sparkData.join(',')}" style="width:100%;height:30px;"></canvas></div>
+    </div>`;
+  }
+  html += `</div>`;
+  main.innerHTML = html;
+
+  // Draw sparklines
+  requestAnimationFrame(() => {
+    main.querySelectorAll('.sparkline').forEach(c => {
+      const vals = c.dataset.values.split(',').filter(v=>v).map(Number);
+      drawSparkline(c, vals, c.dataset.color);
+    });
+  });
+}
+
+// ============================================================
+// EXERCISE DETAIL VIEW
+// ============================================================
+function renderExercise(group, slug) {
+  const main = document.getElementById('main');
+  const meta = GROUP_META[group];
+  const exercises = DATA[group] || [];
+  const ex = exercises.find(e => slugify(e.name) === slug);
+  if (!ex) { main.innerHTML = '<p>Exercise not found.</p>'; return; }
+
+  // Build filter options from training context
+  const variants = [...new Set(ex.sessions.map(s => s.variant).filter(v => v))];
+  const angles = [...new Set(ex.sessions.map(s => s.context.angle).filter(a => a !== null))].sort((a,b)=>a-b);
+  const dominances = [...new Set(ex.sessions.map(s => s.context.dominance).filter(d => d))];
+  const painAreas = [...new Set(ex.sessions.map(s => s.context.painArea).filter(p => p))];
+  const hasFilters = variants.length > 0 || angles.length > 1 || dominances.length > 1;
+
+  const a = ex.analysis || {};
+  let html = `<div class="breadcrumb">
+    <a onclick="location.hash='dashboard'">Dashboard</a><span class="sep">&gt;</span>
+    <a onclick="location.hash='${group}'">${meta.label}</a><span class="sep">&gt;</span>${ex.name}</div>
+  <h1>${ex.name}</h1>
+  <div class="subtitle">${ex.sessions.length} sessions | ${meta.label}</div>
+  <div class="exercise-stats">
+    <div class="ex-stat">
+      <div class="ex-stat-label">All-Time e1RM</div>
+      <div class="ex-stat-value pr-gold">${a.allTimeE1RM > 0 ? a.allTimeE1RM + ' lbs' : '-'}</div>
+      <div class="ex-stat-detail">${a.e1rmDate ? fmt(a.e1rmDate) : ''}</div>
+    </div>
+    <div class="ex-stat">
+      <div class="ex-stat-label">Max Weight Lifted</div>
+      <div class="ex-stat-value">${a.allTimePR > 0 ? a.allTimePR + ' lbs' : 'BW'}</div>
+      <div class="ex-stat-detail">${a.prDate ? fmt(a.prDate) : ''}</div>
+    </div>
+    <div class="ex-stat">
+      <div class="ex-stat-label">Current Working Max</div>
+      <div class="ex-stat-value">${a.currentMax > 0 ? a.currentMax + ' lbs' : '-'}</div>
+      <div class="ex-stat-detail">Last 3 sessions</div>
+    </div>
+    <div class="ex-stat">
+      <div class="ex-stat-label">Status</div>
+      <div class="ex-stat-value" style="color:${a.statusColor || 'inherit'}">${a.status || '-'}</div>
+      <div class="ex-stat-detail">${a.sessionsSincePR > 0 ? a.sessionsSincePR + ' sessions since PR' : 'Recent PR!'}</div>
+    </div>
+    <div class="ex-stat">
+      <div class="ex-stat-label">Last Trained</div>
+      <div class="ex-stat-value">${a.daysSinceLast !== null && a.daysSinceLast !== undefined ? a.daysSinceLast + 'd ago' : '-'}</div>
+      <div class="ex-stat-detail">${a.totalValidSessions || 0} sessions w/ data</div>
+    </div>
+  </div>`;
+
+  if (hasFilters) {
+    html += `<div class="filter-row">`;
+    if (variants.length > 0) {
+      html += `<label>Variant:</label><select id="variantFilter" class="ctx-filter">
+        <option value="">All</option>${variants.map(v => `<option value="${v}">${v}</option>`).join('')}</select>`;
+    }
+    if (angles.length > 1) {
+      html += `<label>Angle:</label><select id="angleFilter" class="ctx-filter">
+        <option value="">All angles</option>${angles.map(a => `<option value="${a}">${a === 0 ? 'Flat (0°)' : a + '°'}</option>`).join('')}</select>`;
+    }
+    if (dominances.length > 1) {
+      html += `<label>Emphasis:</label><select id="domFilter" class="ctx-filter">
+        <option value="">All</option>${dominances.map(d => `<option value="${d}">${d} dominant</option>`).join('')}</select>`;
+    }
+    html += `</div>`;
+  }
+
+  html += `<div class="tab-bar">
+    <button class="tab-btn active" data-tab="maxweight">Max Weight</button>
+    <button class="tab-btn" data-tab="volume">Volume</button>
+    <button class="tab-btn" data-tab="repranges">Rep Ranges</button>
+    <button class="tab-btn" data-tab="recent">Recent Sessions</button>
+  </div>
+  <div class="chart-wrap"><canvas id="exerciseChart"></canvas></div>`;
+
+  // Context legend for pain/injury annotations
+  if (painAreas.length > 0) {
+    html += `<div class="context-legend"><span class="pain-dot"></span> Pain reported in sessions: ${painAreas.join(', ')}</div>`;
+  }
+
+  // Session table with context columns
+  html += `<div class="section-title">Session History</div>
+  <div id="sessionTableWrap" style="overflow-x:auto;"></div>`;
+  main.innerHTML = html;
+
+  let currentTab = 'maxweight';
+
+  function getFilteredSessions() {
+    let result = ex.sessions;
+    const varSel = document.getElementById('variantFilter');
+    if (varSel && varSel.value) result = result.filter(s => s.variant === varSel.value);
+    const angSel = document.getElementById('angleFilter');
+    if (angSel && angSel.value) result = result.filter(s => s.context.angle === parseInt(angSel.value, 10));
+    const domSel = document.getElementById('domFilter');
+    if (domSel && domSel.value) result = result.filter(s => s.context.dominance === domSel.value);
+    return result;
+  }
+
+  function renderSessionTable() {
+    const filtered = getFilteredSessions();
+    const reversed = [...filtered].reverse();
+    const showVariant = variants.length > 0;
+    const showAngle = angles.length > 1;
+    let thtml = `<table class="data-table">
+      <tr><th>Date</th><th>Sets</th>${showVariant ? '<th>Variant</th>':''}${showAngle ? '<th>Angle</th>':''}
+      <th>Emphasis</th><th>Max Wt</th><th>Volume</th><th>Context</th></tr>`;
+    for (const s of reversed) {
+      const allTextOnly = s.sets.length > 0 && s.sets.every(st => st.textOnly);
+      const painBadge = s.maxPain > 0 ? `<span class="pain-badge">${s.maxPain}/10</span>` : '';
+      const domBadge = s.context.dominance ? `<span class="dom-badge dom-${s.context.dominance.toLowerCase()}">${s.context.dominance}</span>` : '<span style="color:var(--text-muted)">-</span>';
+      const angleTxt = s.context.angle !== null ? (s.context.angle === 0 ? 'Flat' : s.context.angle + '°') : '';
+      const cues = [];
+      if (s.context.tempo) cues.push(s.context.tempo);
+      if (s.context.formCues.length) cues.push(...s.context.formCues);
+      if (s.context.painArea) cues.push('⚠ ' + s.context.painArea);
+      const cueStr = cues.join(', ');
+      if (allTextOnly) {
+        const rawText = s.sets.map(st => st.rawText).join(', ');
+        thtml += `<tr>
+          <td style="white-space:nowrap;">${fmt(s.date)}</td>
+          <td colspan="${2 + (showVariant?1:0) + (showAngle?1:0)}" style="font-style:italic;color:var(--text-muted);">${rawText} <span style="font-size:11px;opacity:0.6">(no numeric data)</span></td>
+          <td>-</td>
+          <td>-</td>
+          <td style="font-size:12px;color:var(--text-secondary);">${cueStr || (s.notes ? s.notes.substring(0,60) : '')}</td>
+        </tr>`;
+      } else {
+        thtml += `<tr>
+          <td style="white-space:nowrap;">${fmt(s.date)}</td>
+          <td>${s.setsRaw}</td>
+          ${showVariant ? `<td>${s.variant||'-'}</td>`:''}
+          ${showAngle ? `<td>${angleTxt||'-'}</td>`:''}
+          <td>${domBadge}</td>
+          <td>${s.maxWeight > 0 ? s.maxWeight + painBadge : '-'}</td>
+          <td>${s.totalVolume > 0 ? s.totalVolume.toLocaleString() : '-'}</td>
+          <td style="font-size:12px;color:var(--text-secondary);">${cueStr || (s.notes ? s.notes.substring(0,60) : '')}</td>
+        </tr>`;
+      }
+    }
+    thtml += `</table>`;
+    const wrap = document.getElementById('sessionTableWrap');
+    if (wrap) wrap.innerHTML = thtml;
+  }
+
+  function drawTab(tab) {
+    currentTab = tab;
+    destroyChart();
+    const canvas = document.getElementById('exerciseChart');
+    if (!canvas) return;
+    const sessions = getFilteredSessions();
+
+    if (tab === 'maxweight') {
+      const data = sessions.filter(s => s.maxWeight > 0 || s.bestE1RM > 0);
+      const e1rmData = data.filter(s => s.bestE1RM > 0);
+      const weightData = data.filter(s => s.maxWeight > 0);
+      const painData = data.filter(s => s.maxPain > 0);
+      const prData = data.filter(s => s.isE1RMPR && s.bestE1RM > 0);
+
+      const datasets = [];
+
+      if (e1rmData.length > 0) {
+        datasets.push({
+          label: 'Estimated 1RM',
+          data: e1rmData.map(s => ({ x: s.date, y: s.bestE1RM })),
+          borderColor: meta.accent,
+          backgroundColor: meta.accent + '22',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 3,
+          pointBackgroundColor: meta.accent,
+          borderWidth: 2
+        });
+      }
+
+      datasets.push({
+        label: 'Max Weight Lifted',
+        data: weightData.map(s => ({ x: s.date, y: s.maxWeight })),
+        borderColor: meta.accent + '88',
+        backgroundColor: 'transparent',
+        borderDash: [5, 3],
+        tension: 0.3,
+        pointRadius: 2,
+        pointBackgroundColor: meta.accent + '88',
+        borderWidth: 1.5
+      });
+
+      // PR markers (gold stars)
+      if (prData.length > 0) {
+        datasets.push({
+          label: 'PR',
+          data: prData.map(s => ({ x: s.date, y: s.bestE1RM })),
+          borderColor: 'transparent',
+          backgroundColor: '#fbbf24',
+          pointRadius: 7,
+          pointStyle: 'star',
+          showLine: false
+        });
+      }
+
+      // Pain markers
+      if (painData.length > 0) {
+        datasets.push({
+          label: 'Pain Reported',
+          data: painData.map(s => ({ x: s.date, y: s.maxWeight || s.bestE1RM })),
+          borderColor: 'transparent',
+          backgroundColor: '#ef4444',
+          pointRadius: 6,
+          pointStyle: 'crossRot',
+          showLine: false
+        });
+      }
+
+      const mesoAnnotations = MESOCYCLES.reduce((acc, m, i) => {
+        acc['meso' + i] = {
+          type: 'box',
+          xMin: new Date(m.start).getTime(),
+          xMax: new Date(m.end).getTime(),
+          backgroundColor: m.color + '0a',
+          borderWidth: 0,
+          label: {
+            content: m.name,
+            display: true,
+            position: 'start',
+            color: m.color + '66',
+            font: { size: 10 }
+          }
+        };
+        return acc;
+      }, {});
+
+      currentChart = new Chart(canvas, {
+        type: 'line',
+        data: { datasets },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: datasets.length > 1 },
+            annotation: { annotations: mesoAnnotations }
+          },
+          scales: {
+            x: { type: 'time', time: { unit: 'month' }, grid: { display: false } },
+            y: { beginAtZero: false, title: { display: true, text: 'lbs' }, grid: { color: 'rgba(255,255,255,0.06)' } }
+          }
+        }
+      });
+    } else if (tab === 'volume') {
+      const data = sessions.filter(s => s.totalVolume > 0);
+      currentChart = new Chart(canvas, {
+        type: 'line',
+        data: {
+          datasets: [{
+            label: 'Total Volume (lbs)',
+            data: data.map(s => ({ x: s.date, y: s.totalVolume })),
+            borderColor: '#a78bfa',
+            backgroundColor: 'rgba(167,139,250,0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 3,
+            pointBackgroundColor: '#a78bfa'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            annotation: {
+              annotations: MESOCYCLES.reduce((acc, m, i) => {
+                acc['meso' + i] = {
+                  type: 'box',
+                  xMin: new Date(m.start).getTime(),
+                  xMax: new Date(m.end).getTime(),
+                  backgroundColor: m.color + '0a',
+                  borderWidth: 0,
+                  label: { content: m.name, display: true, position: 'start', color: m.color + '66', font: { size: 10 } }
+                };
+                return acc;
+              }, {})
+            }
+          },
+          scales: {
+            x: { type: 'time', time: { unit: 'month' }, grid: { display: false } },
+            y: { beginAtZero: false, title: { display: true, text: 'Volume (lbs)' }, grid: { color: 'rgba(255,255,255,0.06)' } }
+          }
+        }
+      });
+    } else if (tab === 'repranges') {
+      let low = 0, mid = 0, high = 0;
+      for (const s of sessions) { low += s.repBuckets.low; mid += s.repBuckets.mid; high += s.repBuckets.high; }
+      currentChart = new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+          labels: ['<8 reps (Strength)', '8-12 reps (Hypertrophy)', '12+ reps (Endurance)'],
+          datasets: [{ data: [low, mid, high], backgroundColor: ['#ef4444','#eab308','#22c55e'], borderWidth: 0 }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'bottom', labels: { padding: 16 } } }
+        }
+      });
+    } else if (tab === 'recent') {
+      const recent = sessions.filter(s => s.sets.length > 0).slice(-8);
+      const labels = recent.map(s => fmt(s.date));
+      const maxSets = Math.max(...recent.map(s => s.sets.filter(st => !st.warmup).length), 1);
+      const datasets = [];
+      for (let i = 0; i < maxSets; i++) {
+        datasets.push({
+          label: `Set ${i+1}`,
+          data: recent.map(s => {
+            const working = s.sets.filter(st => !st.warmup);
+            return working[i] ? working[i].weight : 0;
+          }),
+          backgroundColor: SET_COLORS[i % SET_COLORS.length] + 'cc',
+          borderRadius: 4
+        });
+      }
+      currentChart = new Chart(canvas, {
+        type: 'bar',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: {
+              callbacks: {
+                afterLabel: function(ctx) {
+                  const s = recent[ctx.dataIndex];
+                  const working = s.sets.filter(st => !st.warmup);
+                  const set = working[ctx.datasetIndex];
+                  return set && set.reps > 0 ? `${set.reps} reps` : '';
+                }
+              }
+            }
+          },
+          scales: {
+            x: { grid: { display: false } },
+            y: { beginAtZero: true, title: { display: true, text: 'Weight (lbs)' }, grid: { color: 'rgba(255,255,255,0.06)' } }
+          }
+        }
+      });
+    }
+  }
+
+  // Tab click handlers + filter wiring
+  requestAnimationFrame(() => {
+    function onFilterChange() { drawTab(currentTab); renderSessionTable(); }
+    main.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        main.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        drawTab(btn.dataset.tab);
+      });
+    });
+    // Wire up all context filters
+    main.querySelectorAll('.ctx-filter').forEach(sel => {
+      sel.addEventListener('change', onFilterChange);
+    });
+    drawTab('maxweight');
+    renderSessionTable();
+  });
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildNav();
+window.addEventListener('hashchange', route);
+route();
+</script>
+</body>
+</html>
