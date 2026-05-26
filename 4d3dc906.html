@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoCal Trip — Hidden Gems & Free Activities</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page { size: letter; margin: 0.35in 0.35in 0.3in 0.35in; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 7.5pt;
+    line-height: 1.35;
+    color: #1a1a2e;
+    width: 7.8in;
+    height: 10.4in;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    overflow: hidden;
+  }
+
+  .header {
+    text-align: center;
+    padding: 6pt 0 5pt;
+    border-bottom: 2.2pt solid #2d3436;
+    margin-bottom: 6pt;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -3.5pt;
+    left: 20%;
+    right: 20%;
+    height: 0.5pt;
+    background: linear-gradient(90deg, transparent, #636e72, transparent);
+  }
+  .header h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 17pt;
+    font-weight: 700;
+    letter-spacing: 0.5pt;
+    color: #2d3436;
+    margin-bottom: 1.5pt;
+  }
+  .header .subtitle {
+    font-size: 7pt;
+    font-weight: 400;
+    color: #636e72;
+    letter-spacing: 1.5pt;
+    text-transform: uppercase;
+  }
+
+  .sections-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6pt;
+    flex: 1;
+  }
+
+  .section {
+    border: 0.6pt solid #dfe6e9;
+    border-radius: 5pt;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .section-header {
+    padding: 3.5pt 7pt;
+    color: white;
+    font-weight: 700;
+    font-size: 7.5pt;
+    letter-spacing: 0.3pt;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .section-header .when {
+    font-size: 5.8pt;
+    font-weight: 400;
+    opacity: 0.9;
+  }
+  .s-drive .section-header { background: linear-gradient(135deg, #636e72, #b2bec3); }
+  .s-la .section-header { background: linear-gradient(135deg, #e17055, #fab1a0); }
+  .s-sd .section-header { background: linear-gradient(135deg, #00b894, #55efc4); }
+  .s-bonus .section-header { background: linear-gradient(135deg, #6c5ce7, #a29bfe); }
+
+  .section-body {
+    padding: 5pt 7pt 4pt;
+    flex: 1;
+  }
+
+  .gem {
+    margin-bottom: 5pt;
+    padding-bottom: 4pt;
+    border-bottom: 0.3pt solid #f0f0f0;
+  }
+  .gem:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .gem-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 1pt;
+  }
+  .gem-name {
+    font-weight: 700;
+    font-size: 7.2pt;
+    color: #2d3436;
+  }
+  .gem-meta {
+    font-size: 5.8pt;
+    color: #636e72;
+    text-align: right;
+    flex-shrink: 0;
+    margin-left: 4pt;
+  }
+  .gem-meta .free {
+    color: #00b894;
+    font-weight: 600;
+  }
+  .gem-meta .cheap {
+    color: #e17055;
+    font-weight: 600;
+  }
+
+  .gem-desc {
+    font-size: 6.2pt;
+    color: #555;
+    line-height: 1.35;
+    margin-bottom: 1.5pt;
+  }
+
+  .gem-addr {
+    font-size: 5.6pt;
+    color: #888;
+    font-style: italic;
+  }
+  .gem-addr::before {
+    content: '\1F4CD ';
+    font-style: normal;
+  }
+
+  .gem-tip {
+    font-size: 5.6pt;
+    color: #0984e3;
+    margin-top: 1pt;
+  }
+  .gem-tip::before {
+    content: '\2794 ';
+  }
+
+  .star-pick {
+    background: #fffdf5;
+    border: 0.4pt solid #ffeaa7;
+    border-radius: 3pt;
+    padding: 3pt 5pt;
+    margin-bottom: 5pt;
+  }
+  .star-pick .gem-name::before {
+    content: '\2B50 ';
+  }
+
+  .footer-note {
+    margin-top: 5pt;
+    padding: 4pt 7pt;
+    border: 0.6pt solid #dfe6e9;
+    border-radius: 4pt;
+    font-size: 6pt;
+    color: #636e72;
+    line-height: 1.4;
+    flex-shrink: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10pt;
+  }
+  .footer-note strong { color: #2d3436; }
+
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; width: auto; height: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Hidden Gems &amp; Free Activities</h1>
+  <div class="subtitle">SoCal Road Trip &nbsp;&middot;&nbsp; Apr 17&ndash;20, 2026 &nbsp;&middot;&nbsp; Beyond the Tourist Trail</div>
+</div>
+
+<div class="sections-grid">
+
+  <!-- DRIVE STOPS -->
+  <div class="section s-drive">
+    <div class="section-header">
+      <span>Along the Drive</span>
+      <span class="when">Fri Apr 17 &amp; Mon Apr 20</span>
+    </div>
+    <div class="section-body">
+
+      <div class="gem star-pick">
+        <div class="gem-top">
+          <div class="gem-name">Piedras Blancas Elephant Seal Rookery</div>
+          <div class="gem-meta"><span class="free">FREE</span> &middot; 20 min</div>
+        </div>
+        <div class="gem-desc">Hundreds of massive elephant seals lounging on the beach &mdash; wild, loud, and unforgettable. Elevated boardwalk viewing area right off the highway. One of the most surprising stops on the CA coast. Parents will be amazed.</div>
+        <div class="gem-addr">Hwy 1, San Simeon (7 mi north of Hearst Castle) &mdash; ~20 min detour off 101 near SLO</div>
+        <div class="gem-tip">Best as a quick stop before or after SLO lunch on Day 1. Add ~40 min total to your drive (detour + viewing)</div>
+      </div>
+
+      <div class="gem">
+        <div class="gem-top">
+          <div class="gem-name">Morro Rock</div>
+          <div class="gem-meta"><span class="free">FREE</span> &middot; 10 min</div>
+        </div>
+        <div class="gem-desc">A massive 581-ft volcanic plug jutting out of the ocean. Dramatic, almost surreal. Quick drive-by photo or walk to the base. Morro Bay itself is a cute harbor town.</div>
+        <div class="gem-addr">Morro Rock, Morro Bay &mdash; off Hwy 1, ~15 min north of SLO</div>
+        <div class="gem-tip">Combine with elephant seals for a Hwy 1 mini-loop before heading to SLO. Or stop on the way south after SLO</div>
+      </div>
+
+      <div class="gem">
+        <div class="gem-top">
+          <div class="gem-name">Bubblegum Alley</div>
+          <div class="gem-meta"><span class="free">FREE</span> &middot; 5 min</div>
+        </div>
+        <div class="gem-desc">An entire 70-ft alley in downtown SLO covered floor-to-ceiling in chewed gum. Disgusting and delightful. Great photo op. Right off Higuera St near your lunch spot.</div>
+        <div class="gem-addr">733 Higuera St, San Luis Obispo</div>
+      </div>
+
+      <div class="gem">
+        <div class="gem-top">
+          <div class="gem-name">Casa de Fruta Quirky Stops</div>
+          <div class="gem-meta"><span class="cheap">$5&ndash;10</span> &middot; 30 min</div>
+        </div>
+        <div class="gem-desc">Old-school roadside attraction on Hwy 152 (Mon drive home). Mini narrow-gauge train ride, carousel, gold panning, duck pond, fruit stand, and a candy store. Kitschy and fun &mdash; perfect last-stop energy.</div>
+        <div class="gem-addr">10031 Pacheco Pass Hwy, Hollister</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- LOS ANGELES -->
+  <div class="section s-la">
+    <div class="section-header">
+      <span>Los Angeles Gems</span>
+      <span class="when">Sat Apr 18</span>
+    </div>
+    <div class="section-body">
+
+      <div class="gem star-pick">
+        <div class="gem-top">
+          <div class="gem-name">Eaton Canyon Falls Hike</div>
+          <div class="gem-meta"><span class="free">FREE</span> &middot; 2 hrs</div>
+        </div>
+        <div class="gem-desc">A real waterfall, 15 min from your Alhambra Airbnb! 3.5 mi round trip along a shaded canyon. Moderate difficulty &mdash; rocky in spots but mostly flat until the end. The 40-ft waterfall at the end is the payoff. Best done early morning before crowds.</div>
+        <div class="gem-addr">Eaton Canyon Natural Area Park, 1750 N Altadena Dr, Pasadena</div>
+        <div class="gem-tip">Perfect Sat 7&ndash;9am activity before Huntington Gardens. Wear sturdy shoes. Trailhead parking fills up by 10am on weekends</div>
+      </div>
+
+      <div class="gem star-pick">
+        <div class="gem-top">
+          <div class="gem-name">The Last Bookstore</div>
+          <div class="gem-meta"><span class="free">FREE</span> &middot; 20&ndash;30 min</div>
+        </div>
+        <div class="gem-desc">A massive bookstore inside an old bank vault in DTLA. Upstairs has a tunnel made entirely of books, art installations built from pages, and a labyrinth of shelves. One of the most Instagrammed spots in LA &mdash; but it lives up to the hype.</div>
+        <div class="gem-addr">453 S Spring St, Los Angeles (DTLA)</div>
+        <div class="gem-tip">Pair with Grand Central Market lunch (5 min walk) and Angels Flight ($1, next block)</div>
+      </div>
+
+      <div class="gem">
+        <div class="gem-top">
+          <div class="gem-name">Angels Flight Railway</div>
+          <div class="gem-meta"><span class="cheap">$1/ride</span> &middot; 5 min</div>
+        </div>
+        <div class="gem-desc">&ldquo;Shortest railway in the world&rdquo; &mdash; a tiny funicular built in 1901 that climbs a steep hill in Bunker Hill. Featured in La La Land. Right next to Grand Central Market.</div>
+        <div class="gem-addr">350 S Grand Ave, Los Angeles (DTLA)</div>
+      </div>
+
+      <div class="gem">
+        <div class="gem-top">
+          <div class="gem-name">Venice Canals</div>
+          <div class="gem-meta"><span class="free">FREE</span> &middot; 20 min</div>
+        </div>
+        <div class="gem-desc">Walk 2 blocks inland from the Venice Boardwalk chaos and you hit actual canals with charming houses, arched bridges, and ducks. Feels like a secret neighborhood. Most tourists have no idea this exists.</div>
+        <div class="gem-addr">Venice Canal Historic District, Venice Beach &mdash; enter from Dell Ave &amp; S Venice Blvd</div>
+        <div class="gem-tip">Pair with Santa Monica Pier + Venice Boardwalk afternoon. Walk south on the boardwalk, then cut inland to the canals</div>
+      </div>
+
+      <div class="gem">
+        <div class="gem-top">
+          <div class="gem-name">Bradbury Building</div>
+          <div class="gem-meta"><span class="free">FREE</span> &middot; 5 min</div>
+        </div>
+        <div class="gem-desc">Step inside the lobby of this 1893 building and look up &mdash; ornate wrought-iron railings, open cage elevators, a skylit atrium. Featured in Blade Runner and 500 Days of Summer. Stunning architecture hidden behind a plain facade.</div>
+        <div class="gem-addr">304 S Broadway, Los Angeles (DTLA)</div>
+        <div class="gem-tip">2 blocks from The Last Bookstore &mdash; do both in one 30-min DTLA walk</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SAN DIEGO -->
+  <div class="section s-sd">
+    <div class="section-header">
+      <span>San Diego Gems</span>
+      <span class="when">Sun Apr 19 &amp; Mon Apr 20</span>
+    </div>
+    <div class="section-body">
+
+      <div class="gem star-pick">
+        <div class="gem-top">
+          <div class="gem-name">Chicano Park Murals</div>
+          <div class="gem-meta"><span class="free">FREE</span> &middot; 15&ndash;20 min</div>
+        </div>
+        <div class="gem-desc">The largest collection of outdoor murals in the world, painted on the massive pillars under the Coronado Bridge. Vivid, powerful Chicano art &mdash; a National Historic Landmark. <strong>Right next to your Logan Heights Airbnb.</strong> Walk here before heading out Sun morning or Mon before Coronado.</div>
+        <div class="gem-addr">1949 Logan Ave, San Diego (under the Coronado Bridge, Logan Heights)</div>
+        <div class="gem-tip">Best in morning light. It's literally a 5-min walk from your Airbnb &mdash; don't skip this</div>
+      </div>
+
+      <div class="gem star-pick">
+        <div class="gem-top">
+          <div class="gem-name">Balboa Park Free Organ Concert</div>
+          <div class="gem-meta"><span class="free">FREE</span> &middot; 30&ndash;45 min</div>
+        </div>
+        <div class="gem-desc">Every Sunday at 2:00 PM, one of the world's largest outdoor pipe organs plays a free concert at the Spruce Street Organ Pavilion. Sit in the open amphitheater surrounded by Balboa Park gardens. A magical, only-in-SD experience.</div>
+        <div class="gem-addr">Spruce Street Organ Pavilion, Balboa Park &mdash; south end of the park near the Palisades area</div>
+        <div class="gem-tip">Fits perfectly between Balboa Park exploration (11am) and heading to USS Midway (2:30pm). Grab a seat by 1:50pm</div>
+      </div>
+
+      <div class="gem star-pick">
+        <div class="gem-top">
+          <div class="gem-name">Torrey Pines Gliderport</div>
+          <div class="gem-meta"><span class="free">FREE</span> to watch &middot; 15&ndash;20 min</div>
+        </div>
+        <div class="gem-desc">Paragliders and hang gliders launch off 300-ft ocean cliffs and soar on the thermals. Sit on the bluff and watch them fly &mdash; mesmerizing. Dramatic coastal views north and south. <strong>Tandem paraglide flights ~$175/pp</strong> if feeling adventurous (no experience needed).</div>
+        <div class="gem-addr">2800 Torrey Pines Scenic Dr, La Jolla</div>
+        <div class="gem-tip">On your route between La Jolla kayak and Sunset Cliffs. Stop for 15 min, or book a tandem flight for the adrenaline rush of a lifetime</div>
+      </div>
+
+      <div class="gem">
+        <div class="gem-top">
+          <div class="gem-name">Spruce Street Suspension Bridge</div>
+          <div class="gem-meta"><span class="free">FREE</span> &middot; 5 min</div>
+        </div>
+        <div class="gem-desc">A wooden pedestrian suspension bridge spanning a canyon in the Bankers Hill neighborhood. It bounces as you walk &mdash; slightly thrilling, surprisingly scenic. Hidden in a residential area that most visitors never find.</div>
+        <div class="gem-addr">Spruce St &amp; Front St, San Diego (Bankers Hill &mdash; near Balboa Park)</div>
+        <div class="gem-tip">5 min detour from Balboa Park. Walk to the middle, look down into the eucalyptus canyon</div>
+      </div>
+
+      <div class="gem">
+        <div class="gem-top">
+          <div class="gem-name">Sunset Cliffs Tide Pools</div>
+          <div class="gem-meta"><span class="free">FREE</span> &middot; 20 min</div>
+        </div>
+        <div class="gem-desc">You're already going to Sunset Cliffs &mdash; but at low tide, the rocky shelves below reveal tide pools full of anemones, crabs, and small fish. Check the tide chart before going: you need a low tide below 1.0 ft.</div>
+        <div class="gem-addr">Sunset Cliffs Natural Park, Ladera St stairs, Point Loma</div>
+        <div class="gem-tip">Check tides at tides.net for Apr 20. If low tide aligns with sunset, you hit the jackpot</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- EVENTS THIS WEEKEND + BONUS -->
+  <div class="section s-bonus">
+    <div class="section-header">
+      <span>Events This Weekend + Bonus</span>
+      <span class="when">Apr 17&ndash;20, 2026</span>
+    </div>
+    <div class="section-body">
+
+      <div class="gem star-pick">
+        <div class="gem-top">
+          <div class="gem-name">LA Times Festival of Books</div>
+          <div class="gem-meta"><span class="free">FREE</span> &middot; Sat&ndash;Sun</div>
+        </div>
+        <div class="gem-desc">The nation's largest literary/cultural festival at USC. 700+ exhibitor booths, author panels, book signings, food vendors, live music. ~150K attendees. Sarah Jessica Parker, Larry David, Lionel Richie among guests. <strong>Sat 10am&ndash;6pm, Sun 10am&ndash;5pm.</strong></div>
+        <div class="gem-addr">USC University Park Campus, 3551 Trousdale Pkwy, Los Angeles</div>
+        <div class="gem-tip">Sat afternoon fits well after Hollywood. Gets packed &mdash; go early or late. Free but some panels need ticket reservations</div>
+      </div>
+
+      <div class="gem star-pick">
+        <div class="gem-top">
+          <div class="gem-name">Grand Prix of Long Beach</div>
+          <div class="gem-meta"><span class="cheap">$58&ndash;88</span> &middot; Fri&ndash;Sun</div>
+        </div>
+        <div class="gem-desc">IndyCar, IMSA sports cars, Formula Drift, Stadium Super Trucks &mdash; all racing through downtown Long Beach. 190K fans. Food trucks, car show (Ferraris, Porsches), Family Fun Zone. Main IndyCar race <strong>Sun 2:45pm</strong>.</div>
+        <div class="gem-addr">300 E Ocean Blvd, Long Beach</div>
+        <div class="gem-tip">Friday GA is cheapest ($58). Long Beach is ~30 min from Alhambra. Great if anyone in the family likes cars/racing</div>
+      </div>
+
+      <div class="gem">
+        <div class="gem-top">
+          <div class="gem-name">Day at the Docks &mdash; San Diego</div>
+          <div class="gem-meta"><span class="free">FREE</span> &middot; Sun 9a&ndash;5p</div>
+        </div>
+        <div class="gem-desc">West Coast's largest sportfishing celebration. Kid's fishing adventure (ages 4&ndash;12), $5 boat rides around SD Bay, seafood/Thai/Mexican food vendors, live music. Fun &amp; free at Point Loma waterfront.</div>
+        <div class="gem-addr">Fisherman's Landing, 2838 Garrison St, Point Loma, San Diego</div>
+        <div class="gem-tip">Free shuttles from Shelter Island parking. On the way to Sunset Cliffs &mdash; stop by if timing works Sun afternoon</div>
+      </div>
+
+      <div class="gem">
+        <div class="gem-top">
+          <div class="gem-name">Global Earth Day Festival &mdash; Balboa Park</div>
+          <div class="gem-meta"><span class="free">FREE</span> &middot; Sun 11am+</div>
+        </div>
+        <div class="gem-desc">WorldBeat Cultural Center's 34th annual celebration. Live music, art, environmental exhibits, community vibes. Right inside Balboa Park &mdash; you'll walk past it on Sunday.</div>
+        <div class="gem-addr">WorldBeat Cultural Center, 2100 Park Blvd, Balboa Park</div>
+      </div>
+
+      <div class="gem">
+        <div class="gem-top">
+          <div class="gem-name">Smorgasburg LA</div>
+          <div class="gem-meta"><span class="free">FREE</span> entry &middot; Sun 10a&ndash;4p</div>
+        </div>
+        <div class="gem-desc">Brooklyn-born open-air food market with dozens of vendors. Great for grazing. But you'll be driving to SD on Sunday morning &mdash; only works if you delay departure.</div>
+        <div class="gem-addr">ROW DTLA, 777 Alameda St, Los Angeles</div>
+      </div>
+
+      <div class="gem">
+        <div class="gem-top">
+          <div class="gem-name">Tandem Paragliding &mdash; Torrey Pines</div>
+          <div class="gem-meta"><span class="cheap">~$175/pp</span> &middot; 25 min</div>
+        </div>
+        <div class="gem-desc">Run off a 300-ft cliff and soar over the Pacific with an instructor. No experience needed. The most exhilarating thing in SD. Book at <strong>flytorrey.com</strong>. Weather-dependent.</div>
+        <div class="gem-addr">2800 Torrey Pines Scenic Dr, La Jolla</div>
+      </div>
+
+      <div class="gem">
+        <div class="gem-top">
+          <div class="gem-name">Windansea Beach + Cabrillo Monument</div>
+          <div class="gem-meta"><span class="free">FREE</span> / <span class="cheap">$20/car</span></div>
+        </div>
+        <div class="gem-desc"><strong>Windansea:</strong> Local's La Jolla beach, dramatic rocks, surf shack (6800 Neptune Pl). <strong>Cabrillo:</strong> Tip of Point Loma, panoramic views, lighthouse, tide pools (1800 Cabrillo Memorial Dr). Both near Sunset Cliffs route.</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="footer-note">
+  <div>
+    <strong>How to use this list:</strong> These are all optional add-ons to the main itinerary. Star picks (&#11088;) are the ones I'd prioritize &mdash; they're free, fit naturally into the schedule, and are genuinely memorable. The rest are &ldquo;if you're nearby and have 15 min&rdquo; stops.
+  </div>
+  <div>
+    <strong>Google Maps tip:</strong> Search the addresses above to pin them on your map. Create a custom Google Maps list called &ldquo;SoCal Trip Gems&rdquo; and save each pin. That way you can see which ones you're near throughout the trip and decide on the fly.
+  </div>
+</div>
+
+</body>
+</html>
