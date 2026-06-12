@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="artifold:intent" content="Personal narrative of a 4-year chronic hives journey from vaccine onset to Rhapsido resolution">
+<meta name="artifold:tool" content="claude">
+<meta name="artifold:prompt" content="Document my health journey: psoriasis, COVID, vaccine, 4 years of hives, Xolair, Rhapsido resolution">
+<meta name="artifold:layout-archetype" content="timeline-spine">
+<meta name="artifold:design-mode" content="museum-label">
+<meta name="artifold:voice-register" content="intimate-letter">
+<meta name="artifold:signature-device" content="margin-apparatus">
+<!-- timeline-spine: chronological events hung along a vertical line — the story IS a timeline.
+     museum-label: bone-white, Cormorant Garamond / Karla, breathing room, reverence.
+     intimate-letter: first-person, parenthetical asides, honest tone.
+     margin-apparatus: running side-rail carrying dates, annotations, evidence quality flags.
+     The margin IS the scholarly apparatus — medical terms, mechanism notes, and uncertainty
+     markers live there, keeping the narrative clean and readable. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Karla:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<title>Five Years, One Pill</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f6f4ef;
+    --ink: #1c1c1c;
+    --ink-2: #4a4a4a;
+    --ink-3: #8a8a8a;
+    --red: #8c1d18;
+    --red-light: #f2e8e7;
+    --rule: #d6d1c8;
+    --margin-bg: #efeadf;
+    --font-head: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+    --font-body: "Karla", -apple-system, system-ui, sans-serif;
+    --measure: 58ch;
+    --spine-w: 2px;
+    --margin-w: 200px;
+  }
+
+  html, body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 17px;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Page shell ── */
+  .page {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 80px 40px 60px;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    text-align: center;
+    margin-bottom: 80px;
+  }
+  .hero-title {
+    font-family: var(--font-head);
+    font-size: 52px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+  .hero-sub {
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--ink-3);
+    letter-spacing: 0.02em;
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ── Timeline entry ── */
+  .entry {
+    display: grid;
+    grid-template-columns: var(--margin-w) var(--spine-w) 1fr;
+    gap: 0 28px;
+    margin-bottom: 64px;
+    position: relative;
+  }
+
+  /* ── Margin apparatus (left rail) ── */
+  .margin {
+    text-align: right;
+    padding-right: 20px;
+    padding-top: 6px;
+  }
+  .margin-year {
+    font-family: var(--font-head);
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--red);
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+  .margin-note {
+    font-size: 12px;
+    color: var(--ink-3);
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+  .margin-evidence {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-bottom: 4px;
+  }
+  .ev-established { background: #d4edda; color: #155724; }
+  .ev-supported { background: #e2e8f0; color: #2d3748; }
+  .ev-inferred { background: #fff3cd; color: #856404; }
+  .ev-speculative { background: var(--red-light); color: var(--red); }
+
+  /* ── Spine ── */
+  .spine {
+    background: var(--rule);
+    width: var(--spine-w);
+    position: relative;
+  }
+  .spine::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: -5px;
+    width: 12px;
+    height: 12px;
+    background: var(--red);
+    border-radius: 50%;
+    border: 3px solid var(--bg);
+  }
+
+  /* ── Narrative body ── */
+  .narrative {
+    padding-top: 4px;
+    max-width: var(--measure);
+  }
+  .narrative h2 {
+    font-family: var(--font-head);
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 12px;
+    line-height: 1.2;
+  }
+  .narrative p {
+    margin-bottom: 16px;
+    color: var(--ink-2);
+  }
+  .narrative p:last-child { margin-bottom: 0; }
+  .narrative strong {
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* ── Pull quote ── */
+  .pull {
+    font-family: var(--font-head);
+    font-size: 26px;
+    font-weight: 500;
+    font-style: italic;
+    color: var(--red);
+    line-height: 1.35;
+    margin: 24px 0;
+    padding-left: 20px;
+    border-left: 3px solid var(--red);
+    max-width: 50ch;
+  }
+
+  /* ── Mechanism box ── */
+  .mechanism {
+    background: var(--margin-bg);
+    padding: 28px 32px;
+    margin: 48px 0;
+    max-width: 800px;
+    margin-left: calc(var(--margin-w) + var(--spine-w) + 28px + 28px);
+  }
+  .mechanism h3 {
+    font-family: var(--font-head);
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    color: var(--ink);
+  }
+  .mechanism p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--ink-2);
+    margin-bottom: 10px;
+  }
+  .mech-chain {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--ink-3);
+    line-height: 2;
+    padding: 16px 0 4px;
+    text-align: center;
+  }
+  .mech-chain span {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* ── Uncertainty section ── */
+  .uncertainty {
+    margin: 48px 0;
+    margin-left: calc(var(--margin-w) + var(--spine-w) + 28px + 28px);
+    max-width: var(--measure);
+  }
+  .uncertainty h3 {
+    font-family: var(--font-head);
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .uncertainty p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--ink-2);
+    margin-bottom: 10px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    margin-top: 80px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+    text-align: center;
+    font-size: 13px;
+    color: var(--ink-3);
+    line-height: 1.7;
+  }
+
+  @media (max-width: 768px) {
+    .entry { grid-template-columns: 1fr; gap: 12px; }
+    .margin { text-align: left; padding: 0; }
+    .spine { display: none; }
+    .mechanism, .uncertainty { margin-left: 0; }
+  }
+
+  @media print {
+    .page { padding: 0.5in; max-width: 100%; }
+    .hero { margin-bottom: 40px; }
+    .entry { margin-bottom: 32px; }
+    .spine::before, .ev-established, .ev-supported, .ev-inferred, .ev-speculative {
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hero">
+    <h1 class="hero-title">Five Years, One Pill</h1>
+    <p class="hero-sub">A personal account of chronic hives: from a vaccine I was forced to take, through four and a half years of escalating medications and dead ends, to overnight resolution with a drug that didn't exist when this started.</p>
+  </div>
+
+  <!-- ── JUNE 2020: COVID ── -->
+  <div class="entry">
+    <div class="margin">
+      <div class="margin-year">2020</div>
+      <div class="margin-note">SARS-CoV-2 infection<br>June 2020, India<br>Recovered in 3 days</div>
+      <span class="margin-evidence ev-established">Established</span>
+      <div class="margin-note" style="margin-top:6px">Rapid recovery suggests well-calibrated antiviral immune response. No post-COVID complications.</div>
+    </div>
+    <div class="spine"></div>
+    <div class="narrative">
+      <h2>COVID, handled</h2>
+      <p>I caught it early, June 2020, before vaccines existed. Three days of symptoms, then nothing. My immune system fought the actual virus efficiently. I moved on. Everyone did.</p>
+    </div>
+  </div>
+
+  <!-- ── DEC 2021: THE VACCINE ── -->
+  <div class="entry">
+    <div class="margin">
+      <div class="margin-year" style="font-size:26px">Dec<br>2021</div>
+      <div class="margin-note">Covaxin (BBV152)<br>Whole-virion inactivated<br>Adjuvant: Alhydroxiquim-II (TLR7/8 agonist)<br><br>US Presidential Proclamation 10294: noncitizen travelers must show proof of vaccination. Jan 2022 – May 2023.</div>
+      <span class="margin-evidence ev-established">Established</span>
+      <div class="margin-note" style="margin-top:6px"><strong>Post-vaccine urticaria is not contested.</strong><br><br>
+      WHO VigiBase (131M reports, 156 countries): 1,898 chronic urticaria cases linked to COVID vaccines. Reporting odds ratio <strong>26.5×</strong> vs other vaccines.<br><br>
+      UCARE study (2,769 patients, <em>JACI</em> 2023): 9% exacerbation rate. Inactivated vaccines: 8%.<br><br>
+      VAERS: ~21,600 urticaria reports in year 1 alone, 32% of all skin AEs reported.<br><br>
+      Ryan et al. (<em>JAAD</em> 2024): documented chronic cases lasting 14–16+ months, some unresolved at publication.</div>
+    </div>
+    <div class="spine"></div>
+    <div class="narrative">
+      <h2>The vaccine I didn't want</h2>
+      <p>I resisted for a year and a half. I'd had COVID in June 2020 and recovered in three days. I didn't see the point. My friends questioned it. My family questioned it. Literally everyone I talked to had an opinion. I held out anyway.</p>
+      <p>But I was in India and needed to return to the US, and the US had a mandate: noncitizens entering the country had to be vaccinated. No exceptions. (Novak Djokovic refused to comply with the same policy and missed the 2022 US Open and the 2023 Miami Open rather than get the shot. When the mandate was lifted, he came back and won his 24th Grand Slam. I didn't have that luxury. I had a job to get back to.)</p>
+      <p>I was in Delhi, visiting my then-girlfriend (now wife) Annu. To fly back to the US, I needed the shot. So in December 2021, I got Covaxin, a whole-virion inactivated vaccine with a potent adjuvant designed to provoke a strong, broad immune response. I complied.</p>
+      <p>Within days, hives appeared. Random welts across my body, rising and fading unpredictably. I assumed it was temporary. A reaction that would pass in a week, maybe two.</p>
+      <p>It didn't pass.</p>
+    </div>
+  </div>
+
+  <!-- ── MID 2022: DIAGNOSIS ── -->
+  <div class="entry">
+    <div class="margin">
+      <div class="margin-year" style="font-size:26px">Mid<br>2022</div>
+      <div class="margin-note">Skin biopsy performed<br>CSU confirmed<br>Cetirizine 10mg prescribed</div>
+      <span class="margin-evidence ev-established">Established</span>
+      <div class="margin-note" style="margin-top:6px">Biopsy-confirmed diagnosis. Lab-tested, not clinical assumption.</div>
+    </div>
+    <div class="spine"></div>
+    <div class="narrative">
+      <h2>Confirmed</h2>
+      <p>Several months in, a dermatologist cut a piece of my skin and sent it to the lab. The biopsy confirmed what I already knew: chronic spontaneous urticaria. A name for the thing that wouldn't leave.</p>
+      <p>They prescribed cetirizine. One 10mg pill a day. For the first thirty days, it worked. The hives quieted. I thought: okay, this is manageable. One pill, and I can live with this.</p>
+      <p>Then day thirty-one. The hives came back, worse than before, as if the cetirizine had just been holding them underwater and they'd learned to swim.</p>
+    </div>
+  </div>
+
+  <!-- ── 2021-2025: THE LONG MIDDLE ── -->
+  <div class="entry">
+    <div class="margin">
+      <div class="margin-year">2022–25</div>
+      <div class="margin-note">Escalating antihistamines<br>Cetirizine + fexofenadine + famotidine<br>3-4 pills/day at peak<br><br>Immunotherapy attempted<br>3 months, skin patch test<br>Rice/eggs/mushrooms eliminated<br>No improvement</div>
+      <span class="margin-evidence ev-established">Established</span>
+      <div class="margin-note" style="margin-top:6px">H1+H2 antihistamines block histamine output but don't address mast cell activation cause. Immunotherapy targets allergic pathways, ineffective for autoimmune CSU.</div>
+    </div>
+    <div class="spine"></div>
+    <div class="narrative">
+      <h2>The long middle</h2>
+      <p>The hives became daily. They were everywhere: body, arms, legs, sometimes my lips. Worse at night, when the itching would wake me at 3 AM. Worse with heat, which meant every shower was a negotiation. Worse with stress, which meant work made my skin worse and my skin made work harder.</p>
+      <p>The dosages kept climbing. One cetirizine became two. Then they added fexofenadine, a different H1 blocker. Then famotidine, because it hits the H2 receptor, a different pathway. Three, four pills a day. They took the edge off. They never solved it.</p>
+      <p>I saw multiple immunologists. One did a skin patch test and put me on immunotherapy for three months. Told me to cut out rice, eggs, mushrooms, and a list of other foods. I obliged. I was desperate enough to try anything. It didn't help. The hives didn't care what I ate. (They wouldn't. This wasn't an allergy. But I didn't know that yet.)</p>
+      <p>I cycled through dermatologists, allergists, immunologists. Each one had a slightly different antihistamine to try, a slightly different combination. None of them fixed it. Most of them didn't engage with the vaccine timeline at all.</p>
+
+      <div class="pull">Nobody told me why. The word I kept hearing was "idiopathic." Medical language for "we don't know."</div>
+
+      <p>Through all of this, Annu was there. When we were long-distance, she'd hear me on the phone at 4 AM, unable to sleep from the itching. When we got married in April 2024 and moved in together, she could finally see the full picture. How the hives dictated every day. Every stressful period at work, the hives would double-attack. Every flu, every fever, they'd flare. She'd wake up when I woke up, worried. We both prayed, more times than I can count, that this thing would just go away. It didn't.</p>
+      <p>The triggers were everywhere, and I had to navigate around all of them. In December 2022, I flew to India for my best friend's wedding. The night before the ceremony, I got a slight fever and took an ibuprofen, not knowing that NSAIDs are a direct CSU trigger. The hives exploded. I had to skip the actual wedding and go home. My best friend's wedding. Because of one ibuprofen.</p>
+
+      <div class="pull">Every fever. Every stressful week. Every ibuprofen I didn't know I couldn't take. The hives were always waiting.</div>
+
+      <p>I told every doctor: hives started right after the vaccine. No prior history. The timing was obvious to me. And here's the thing that frustrated me most: some of them actually mentioned they'd seen a surge of hives cases after COVID. They acknowledged the pattern. But nobody would point directly at the vaccine. I didn't understand it then and I still don't fully now. A vaccine can have side effects, or it can't. Both are reasonably plausible. Why wouldn't they just acknowledge the possibility?</p>
+      <p>But it wasn't just doctors. When I'd mention the vaccine connection to friends, some would laugh it off, almost mockingly. As if suggesting a vaccine might have a side effect made you a conspiracy theorist. And I get it. That was the climate. In 2021 and 2022, questioning the vaccine in any form, even the tiniest, most reasonable form, was treated as being anti-vaccine. There was no space for nuance. You were either pro-vaccine or you were a problem. So even when my body was telling me something obvious, that hives appeared the week I got vaccinated and never left, I learned to stop bringing it up. It wasn't worth the eye rolls.</p>
+      <p>Years later, the data would catch up. The WHO's own pharmacovigilance database, covering 131 million reports from 156 countries, identified 1,898 cases of chronic urticaria linked to COVID vaccines, with a reporting odds ratio 26 times higher than all other vaccines combined. The UCARE multicenter study, published in the <em>Journal of Allergy and Clinical Immunology</em>, documented a 9% urticaria exacerbation rate across 2,769 patients, with inactivated vaccines like Covaxin at 8%. The US VAERS system logged over 21,000 urticaria reports in the first year alone, making hives the second most common skin reaction after injection-site soreness. Peer-reviewed case series in <em>JAAD</em> documented chronic cases lasting 14 to 16 months, some still unresolved at publication. This wasn't speculation. It was never speculation. It was a pattern visible in emergency rooms and allergy clinics worldwide, published in the same journals those doctors read every month. They just couldn't say it out loud.</p>
+      <p>So I managed. Four and a half years of managing.</p>
+    </div>
+  </div>
+
+  <!-- ── JULY 2025: DR. CINDY ── -->
+  <div class="entry">
+    <div class="margin">
+      <div class="margin-year" style="font-size:26px">Jul<br>2025</div>
+      <div class="margin-note">Dr. Cindy Nguyen<br>Allergist/Immunologist<br>Bay Area, CA</div>
+      <span class="margin-evidence ev-established">Established</span>
+      <div class="margin-note" style="margin-top:6px">Montelukast (Singulair) trialed and failed. IgE tested: very low. First real clue.</div>
+    </div>
+    <div class="spine"></div>
+    <div class="narrative">
+      <h2>A new doctor, the same question</h2>
+      <p>I started seeing Dr. Cindy Nguyen, an allergist in the Bay Area. She tried montelukast (Singulair) first, a leukotriene receptor antagonist, yet another angle of attack. It didn't work.</p>
+      <p>Then she tested my IgE levels. They came back <strong>very low</strong>. She was honest about what that meant: Xolair, the biologic injection she'd normally recommend next, works by blocking IgE. If my IgE was already low, the drug might not work well. But it was still worth trying. It was the best option they had.</p>
+    </div>
+  </div>
+
+  <!-- ── LATE 2025: XOLAIR ── -->
+  <div class="entry">
+    <div class="margin">
+      <div class="margin-year" style="font-size:26px">Late<br>2025</div>
+      <div class="margin-note">Omalizumab (Xolair)<br>300mg SC monthly<br>Anti-IgE monoclonal antibody<br><br>Warning: risk of anaphylaxis (potentially fatal allergic reaction)</div>
+      <span class="margin-evidence ev-supported">Supported</span>
+      <div class="margin-note" style="margin-top:6px">Low IgE + Xolair waning = documented clinical markers of Type IIb autoimmune CSU (Kolkhir et al., <em>Allergy</em> 2017, 2020).</div>
+    </div>
+    <div class="spine"></div>
+    <div class="narrative">
+      <h2>Hope, then not</h2>
+      <p>Xolair. A monthly injection that binds and neutralizes IgE. The first shot was scary. This is a drug that carries a black-box warning for anaphylaxis, a potentially fatal allergic reaction that can happen any time, even after a year of use. I sat in the clinic for the observation period, watching the clock, wondering if my throat would close.</p>
+      <p>It didn't. And for the first two months, something shifted. The hives didn't fully disappear, but they reduced significantly. I slept through the night more often than not. I started to feel like maybe this was it. Not a cure, but a manageable life.</p>
+      <p>Then the hives came back. Not gradually. They crashed back. Sleepless nights from itching. Swollen lips. My neck would swell, sometimes painfully. Work stress doubled the flares, and the flares doubled the stress. I was back to daily antihistamines on top of the injections, and the drug that was supposed to be the answer was losing its grip.</p>
+
+      <div class="pull">Sleepless nights. Swollen lips. A neck so swollen it hurt. Work stress doubling the hives. The hives doubling the stress.</div>
+    </div>
+  </div>
+
+  <!-- ── APRIL 2026: UNDERSTANDING ── -->
+  <div class="entry">
+    <div class="margin">
+      <div class="margin-year">2026</div>
+      <div class="margin-note">Type IIb autoimmune CSU<br>IgG autoantibodies against FcεRI/IgE<br>Mast cell activation independent of IgE pathway</div>
+      <span class="margin-evidence ev-inferred">Inferred</span>
+      <div class="margin-note" style="margin-top:6px">Autoantibody testing (ASST, BAT, CU Index) not performed. Type IIb inferred from clinical markers. The inference is strong but unconfirmed by lab.</div>
+    </div>
+    <div class="spine"></div>
+    <div class="narrative">
+      <h2>The picture comes together</h2>
+      <p>By May 2026, I was fed up. Four and a half years of this: the itching, the swelling, the sleepless nights, the revolving door of specialists. So I sat down with Claude, Anthropic's AI assistant, and started digging. Not a single session, but days of iterating, going back and forth, researching CSU mechanisms, treatment pathways, drug approvals, clinical trials, immunology papers. And after all that digging, Claude flagged something I hadn't heard of: <strong>remibrutinib</strong>, brand name Rhapsido. But first, it helped me understand <em>why</em> nothing had worked.</p>
+      <p>I learned about <strong>Type IIb autoimmune CSU</strong>, a subtype where the disease isn't driven by IgE at all, but by autoantibodies (IgG) that directly bind to the high-affinity IgE receptor on mast cells, telling them to degranulate constantly, independent of any allergen.</p>
+      <p>The clinical markers matched my profile exactly: low total IgE, initial Xolair response then waning, post-vaccine onset, pre-existing autoimmune condition. Every box checked.</p>
+      <p>And then I found it. <strong>Remibrutinib</strong>. Brand name Rhapsido. A BTK inhibitor, FDA-approved just nine months earlier in September 2025. A new drug, so new that most allergists hadn't prescribed it yet. But the clinical trials showed remarkable results, and the mechanism made sense for my case. BTK sits inside the mast cell at the convergence point, where signals from IgE, autoantibodies, complement, and every other pathway all funnel through before triggering degranulation. Block BTK, and the cell can't release histamine regardless of what's poking it from outside.</p>
+      <p>It didn't care <em>why</em> my mast cells were firing. It just stopped them from firing.</p>
+    </div>
+  </div>
+
+  <!-- ── JUNE 8, 2026: THE FIRST PILL ── -->
+  <div class="entry">
+    <div class="margin">
+      <div class="margin-year" style="font-size:28px">Jun 8,<br>2026</div>
+      <div class="margin-note">Remibrutinib (Rhapsido)<br>25mg BID, oral<br>BTK inhibitor</div>
+      <span class="margin-evidence ev-established">Established</span>
+      <div class="margin-note" style="margin-top:6px">REMIX-1/2 (NEJM 2025): ~30% complete response, ~50% well-controlled at wk 12. Some patients responded within 12 hours. FDA-approved Sept 30, 2025.</div>
+    </div>
+    <div class="spine"></div>
+    <div class="narrative">
+      <h2>One pill</h2>
+      <p>I messaged Dr. Cindy: Xolair is waning, my IgE is low, the pattern suggests autoimmune CSU, can we try Rhapsido? Her response surprised me. She called it an "exceptionally new medicine" and said she hadn't prescribed it to a single patient yet. Then she asked: would I like to be an early adopter?</p>
+      <p>Sure, it's new. Sure, the long-term data is limited. But I'd been dealing with this for four and a half years. I said yes without hesitation.</p>
+      <p>Her department had to get trained on the prior authorization process. Nobody in the entire practice had done one for Rhapsido before. They figured it out. CVS Caremark approved coverage on June 4th. Safeway Pharmacy ordered the medication. The Novartis copay card brought my cost to zero.</p>
+      <p>The days waiting for it to arrive at the pharmacy were the most excited I'd been about anything in a long time. When I got the call that it was ready, I drove straight to Safeway. And I took the first pill in the car, in the parking lot, before I even drove home. I couldn't wait.</p>
+      <p>Six or seven hours later, the hives were gone. Poof. Not reduced. Not improved. <em>Gone.</em> I slept through the entire night for the first time in months. The next morning, my skin was completely clear.</p>
+
+      <div class="pull">Not improved. Not better. Gone. Not even 1% remained.</div>
+
+      <p>Four and a half years of hives. Thousands of antihistamine pills. A failed immunotherapy regimen. Monthly injections that scared me and then stopped working. Dozens of doctors, none of whom could tell me why. And then one tablet, taken in a Safeway parking lot because I couldn't wait to get home. And it was over.</p>
+    </div>
+  </div>
+
+  <!-- ── THE MECHANISM ── -->
+  <div class="mechanism">
+    <h3>Why it worked</h3>
+    <p>Every prediction the autoimmune hypothesis made turned out to be correct. If the disease were IgE-driven, Xolair would have held. It didn't. If autoantibodies were the real driver, a mechanism-agnostic approach would succeed where an IgE-specific one failed. It did. If BTK inhibition were the right level of intervention, onset would be hours, not weeks. It was.</p>
+    <p style="font-size:13px; color:var(--ink-3); margin-bottom:8px;">One detail I haven't mentioned: I'd had psoriasis since 2019. Red, flaky patches on my scalp and face. An autoimmune condition. Having one autoimmune disease increases the risk of developing another. That predisposition is what made my immune system vulnerable to the vaccine trigger in the first place.</p>
+    <div class="mech-chain">
+      <span>Psoriasis</span> (autoimmune predisposition)
+      → <span>Covaxin adjuvant</span> (immune stimulus past tolerance threshold)
+      → <span>Autoantibodies</span> against FcεRI on mast cells
+      → <span>Chronic activation</span> independent of IgE
+      → <span>Xolair</span> (anti-IgE, wrong target, partial, temporary)
+      → <span>Rhapsido</span> (BTK, the convergence point, immediate, complete)
+    </div>
+  </div>
+
+  <!-- ── WHAT COMES AFTER ── -->
+  <div class="entry">
+    <div class="margin">
+      <div class="margin-year" style="font-size:22px; color: var(--ink-3);">Next</div>
+      <div class="margin-note">Ongoing Rhapsido<br>REASSERT US study (NCT07358780)<br>Possible discontinuation trial 6–12 mo<br><br>Rhapsido has 52 weeks of safety data. 3,280 patients tracked through 2031 in REASSERT. Long-term picture still being written.</div>
+    </div>
+    <div class="spine"></div>
+    <div class="narrative">
+      <h2>What comes after</h2>
+      <p>I'll stay on Rhapsido. One pill, twice a day. I'm an early adopter of a drug that's been on the market for nine months. The long-term picture will be written by patients like me over the next few years. The ongoing REASSERT study (3,280 patients tracked through 2031) will sharpen the safety profile. I'm comfortable with the trade. Four and a half years of chronic inflammation carried its own long-term cost.</p>
+      <p>After 6 to 12 months of stable control, I'll discuss a supervised discontinuation with my allergist. CSU remits spontaneously in 30-50% of patients within five years. I'm at year four and a half. Every month on treatment is another month where my immune system might resolve this on its own, and I'd find out when I stop.</p>
+      <p>I've signed up to join the REASSERT US observational study. If my "hives disappeared in the Safeway parking lot" gets documented in a formal database instead of just a conversation, maybe it helps someone find this drug sooner than I did.</p>
+      <p>I've lost so many hours. So many nights. This has been, without doubt, the single biggest pain point of my life. Not the psoriasis, not the dental work, not the desk-job headaches. The hives. The itching that wouldn't stop. The swelling that made me look sick. The sleep I never got. The doctors who saw the pattern but wouldn't name it.</p>
+      <p>The vaccine didn't give me an allergy. It triggered my genetically autoimmune-prone immune system to turn against my own mast cells. For four and a half years, nobody could tell me why. Now I know. And now there's a pill that doesn't need to know why. It just stops the cells from firing.</p>
+      <p>I'm really hoping it's behind me now.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    Shubham Goel · San Francisco · June 2026<br>
+    Hive-free since June 8, 2026. The itching finally stopped.
+  </div>
+
+</div>
+</body>
+</html>
