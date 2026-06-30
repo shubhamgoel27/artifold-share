@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Brief: On-Creative Text in Instagram Ads Ranking</title>
+
+<meta name="artifold:intent" content="Recruiter pre-read project brief for a DoorDash MLE deep-dive round">
+<meta name="artifold:tool" content="claude">
+<meta name="artifold:prompt" content="Self-contained polished one-page project brief to share with a recruiter 24h before a DoorDash Project Deep Dive; five prompts, NE-only results, no rehearsal chrome">
+<meta name="artifold:layout-archetype" content="sidebar-nav-docs">
+<meta name="artifold:design-mode" content="annual-report">
+<meta name="artifold:voice-register" content="spec-sheet">
+<meta name="artifold:signature-device" content="exploded-diagram">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  /* type scale, ratio 1.25 */
+  --step--1:.82rem; --step-0:1rem; --step-1:1.25rem; --step-2:1.563rem;
+  --step-3:1.953rem; --step-4:2.441rem;
+
+  --font-head:"Inter Tight", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-body:"Source Serif 4", Georgia, "Times New Roman", serif;
+
+  /* spacing, base 4px */
+  --s-1:.25rem; --s-2:.5rem; --s-3:.75rem; --s-4:1rem; --s-5:1.25rem;
+  --s-6:1.5rem; --s-8:2rem; --s-10:2.5rem; --s-12:3rem; --s-16:4rem;
+
+  /* palette, annual-report: white dominant, neutral support, single blue accent */
+  --bg:#ffffff;
+  --paper:#fbfcfd;
+  --ink:#14171a;
+  --ink-soft:#3a4047;
+  --ink-mute:#697079;
+  --line:#e4e8ec;
+  --line-soft:#eef1f4;
+  --accent:#0071e3;
+  --accent-deep:#0a4a93;
+  --accent-wash:#eef5fe;
+  --good:#0a7d4f;
+
+  --shadow-color:213 35% 30%;
+  --shadow-sm:0 1px 2px hsl(var(--shadow-color)/.10);
+  --shadow-md:0 2px 4px hsl(var(--shadow-color)/.08), 0 6px 14px hsl(var(--shadow-color)/.07);
+  --radius:8px;
+  --radius-sm:5px;
+}
+
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  margin:0;
+  font-family:var(--font-body);
+  font-size:var(--step-0);
+  line-height:1.62;
+  color:var(--ink-soft);
+  background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+/* ---------- layout: sidebar + content ---------- */
+.shell{
+  display:grid;
+  grid-template-columns:300px 1fr;
+  max-width:1180px;
+  margin:0 auto;
+  align-items:start;
+}
+
+/* left meta rail */
+.rail{
+  position:sticky;
+  top:0;
+  align-self:start;
+  height:100vh;
+  overflow:auto;
+  padding:var(--s-12) var(--s-8) var(--s-8) var(--s-10);
+  border-right:1px solid var(--line);
+  background:var(--paper);
+}
+.rail .mark{
+  font-family:var(--font-head);
+  font-weight:600;
+  font-size:var(--step--1);
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--accent-deep);
+}
+.rail .mark .dot{color:var(--accent);}
+.rail h1{
+  font-family:var(--font-head);
+  font-weight:600;
+  font-size:var(--step-2);
+  line-height:1.18;
+  letter-spacing:-.018em;
+  color:var(--ink);
+  margin:var(--s-4) 0 var(--s-3);
+  text-wrap:balance;
+}
+.rail .sub{
+  font-size:var(--step--1);
+  color:var(--ink-mute);
+  line-height:1.5;
+  margin:0 0 var(--s-8);
+}
+
+.rail-block{margin-bottom:var(--s-8);}
+.rail-block .label{
+  font-family:var(--font-head);
+  font-size:.68rem;
+  font-weight:600;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+  color:var(--ink-mute);
+  margin-bottom:var(--s-3);
+}
+.meta-line{
+  display:flex;
+  justify-content:space-between;
+  gap:var(--s-3);
+  font-size:.86rem;
+  padding:var(--s-2) 0;
+  border-bottom:1px solid var(--line-soft);
+}
+.meta-line:last-child{border-bottom:0;}
+.meta-line .k{color:var(--ink-mute);}
+.meta-line .v{
+  color:var(--ink);
+  font-family:var(--font-head);
+  font-weight:500;
+  text-align:right;
+}
+
+/* headline figures in rail */
+.figs{display:grid; gap:var(--s-3);}
+.fig{
+  border-left:2px solid var(--accent);
+  padding:var(--s-1) 0 var(--s-1) var(--s-4);
+}
+.fig .n{
+  font-family:var(--font-head);
+  font-weight:600;
+  font-size:var(--step-1);
+  color:var(--ink);
+  letter-spacing:-.01em;
+}
+.fig .d{
+  font-size:.78rem;
+  color:var(--ink-mute);
+  line-height:1.4;
+}
+
+.toc{display:grid; gap:var(--s-1);}
+.toc a{
+  font-family:var(--font-head);
+  font-size:.85rem;
+  color:var(--ink-soft);
+  text-decoration:none;
+  padding:var(--s-1) 0;
+  display:flex;
+  gap:var(--s-3);
+}
+.toc a .num{color:var(--accent); font-weight:600; font-variant-numeric:tabular-nums;}
+.toc a:hover{color:var(--accent-deep);}
+
+/* ---------- content ---------- */
+.content{
+  padding:var(--s-12) var(--s-16) var(--s-16) var(--s-12);
+  max-width:860px;
+}
+.fs{font-size:.78rem; color:var(--ink-mute); font-weight:400;}
+.framing{
+  font-size:.92rem;
+  color:var(--ink-mute);
+  font-style:italic;
+  padding:var(--s-4) var(--s-5);
+  background:var(--accent-wash);
+  border-radius:var(--radius-sm);
+  margin-bottom:var(--s-12);
+  line-height:1.55;
+}
+
+section{margin-bottom:var(--s-16);}
+section:last-of-type{margin-bottom:var(--s-8);}
+
+.sec-head{
+  display:flex;
+  align-items:baseline;
+  gap:var(--s-4);
+  margin-bottom:var(--s-6);
+  padding-bottom:var(--s-3);
+  border-bottom:1px solid var(--line);
+}
+.sec-head .idx{
+  font-family:var(--font-head);
+  font-weight:600;
+  font-size:var(--step-1);
+  color:var(--accent);
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.01em;
+}
+.sec-head h2{
+  font-family:var(--font-head);
+  font-weight:600;
+  font-size:var(--step-2);
+  line-height:1.15;
+  letter-spacing:-.018em;
+  color:var(--ink);
+  margin:0;
+  text-wrap:balance;
+}
+
+p{margin:0 0 var(--s-4); max-width:68ch; text-wrap:pretty;}
+
+ul.points{list-style:none; margin:0 0 var(--s-4); padding:0;}
+ul.points > li{
+  position:relative;
+  padding:0 0 var(--s-4) var(--s-6);
+  max-width:68ch;
+}
+ul.points > li::before{
+  content:"";
+  position:absolute;
+  left:0; top:.62em;
+  width:6px; height:6px;
+  background:var(--accent);
+  border-radius:50%;
+}
+ul.points > li:last-child{padding-bottom:0;}
+.lead{
+  font-family:var(--font-head);
+  font-weight:600;
+  color:var(--ink);
+}
+
+/* nested sub-points */
+ul.sub{list-style:none; margin:var(--s-3) 0 0; padding:0;}
+ul.sub > li{
+  position:relative;
+  padding:0 0 var(--s-3) var(--s-5);
+  max-width:64ch;
+  font-size:.96rem;
+}
+ul.sub > li::before{
+  content:"";
+  position:absolute;
+  left:0; top:.7em;
+  width:7px; height:1px;
+  background:var(--ink-mute);
+}
+ul.sub > li:last-child{padding-bottom:0;}
+
+/* ---------- pipeline diagram (signature device) ---------- */
+.figure{
+  margin:var(--s-8) 0;
+  padding:var(--s-8) var(--s-6) var(--s-6);
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow-sm);
+}
+.figure .cap{
+  font-family:var(--font-head);
+  font-size:.72rem;
+  font-weight:600;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--ink-mute);
+  margin-bottom:var(--s-6);
+}
+.figure .cap span{color:var(--accent-deep);}
+
+.pipe{
+  display:flex;
+  align-items:stretch;
+  gap:0;
+  flex-wrap:nowrap;
+}
+.stage{
+  flex:1 1 0;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:var(--s-2);
+}
+.stage.wide{flex:2.1 1 0;}
+.stage .box{
+  flex:1;
+  width:100%;
+  border:1px solid var(--line);
+  background:var(--bg);
+  border-radius:var(--radius-sm);
+  padding:var(--s-3) var(--s-2);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  box-shadow:var(--shadow-sm);
+}
+.stage .box .t{
+  font-family:var(--font-head);
+  font-weight:600;
+  font-size:.82rem;
+  color:var(--ink);
+  line-height:1.2;
+}
+.stage .box .s{
+  font-size:.68rem;
+  color:var(--ink-mute);
+  line-height:1.3;
+  margin-top:3px;
+}
+.stage .who{
+  font-family:var(--font-head);
+  font-size:.6rem;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  color:var(--ink-mute);
+  text-align:center;
+}
+.arrow{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 24px;
+  color:var(--accent);
+  align-self:center;
+}
+.arrow svg{display:block;}
+
+/* feature-family stage */
+.fambox{
+  flex:1;
+  border:1px solid var(--accent);
+  background:var(--accent-wash);
+  border-radius:var(--radius-sm);
+  padding:var(--s-3);
+  box-shadow:var(--shadow-sm);
+}
+.fambox .fam-label{
+  font-family:var(--font-head);
+  font-size:.62rem;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+  color:var(--accent-deep);
+  text-align:center;
+  margin-bottom:var(--s-2);
+  font-weight:600;
+}
+.famlist{display:flex; flex-direction:column; gap:var(--s-2);}
+.pill{
+  display:flex;
+  align-items:center;
+  gap:var(--s-2);
+  background:var(--bg);
+  border-radius:4px;
+  padding:var(--s-2) var(--s-3);
+  border:1px solid var(--line-soft);
+}
+.pill .dot{width:8px; height:8px; border-radius:50%; flex:none; background:var(--accent);}
+.pill .nm{font-family:var(--font-head); font-weight:600; font-size:.78rem; color:var(--ink); line-height:1.15;}
+.pill .meta{font-size:.66rem; color:var(--ink-mute); margin-left:auto; white-space:nowrap;}
+.pill.drop{background:transparent; border-style:dashed;}
+.pill.drop .dot{background:transparent; border:1px solid #b6bec7;}
+.pill.drop .nm{color:var(--ink-mute); font-weight:500;}
+
+/* ---------- metrics table ---------- */
+.metrics-wrap{
+  margin:var(--s-6) 0 var(--s-6);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  overflow:hidden;
+  box-shadow:var(--shadow-md);
+}
+table.metrics{
+  width:100%;
+  border-collapse:collapse;
+  font-size:.9rem;
+}
+table.metrics thead th{
+  font-family:var(--font-head);
+  font-size:.68rem;
+  font-weight:600;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+  color:var(--ink-mute);
+  text-align:left;
+  padding:var(--s-4) var(--s-4);
+  background:var(--paper);
+  border-bottom:1px solid var(--line);
+}
+table.metrics thead th.num,
+table.metrics td.num{text-align:right; font-variant-numeric:tabular-nums;}
+table.metrics tbody td{
+  padding:var(--s-4) var(--s-4);
+  border-bottom:1px solid var(--line-soft);
+  vertical-align:top;
+}
+table.metrics tbody tr:last-child td{border-bottom:0;}
+table.metrics tbody tr:nth-child(even){background:#fcfdfe;}
+table.metrics .mname{
+  font-family:var(--font-head);
+  font-weight:500;
+  color:var(--ink);
+  max-width:240px;
+}
+table.metrics .base{color:var(--ink-mute); font-family:var(--font-head);}
+table.metrics .target{color:var(--ink-soft); font-size:.82rem; max-width:200px;}
+table.metrics .result{
+  font-family:var(--font-head);
+  font-weight:700;
+  color:var(--accent-deep);
+}
+.tnote{
+  font-size:.78rem;
+  color:var(--ink-mute);
+  font-style:italic;
+  margin:0 0 var(--s-6);
+  line-height:1.5;
+}
+
+/* ---------- NE ablation bar (secondary dataviz) ---------- */
+.ablation{
+  margin:var(--s-8) 0;
+  padding:var(--s-8) var(--s-6) var(--s-6);
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow-sm);
+}
+.ablation .cap{
+  font-family:var(--font-head);
+  font-size:.72rem;
+  font-weight:600;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--ink-mute);
+  margin-bottom:var(--s-6);
+}
+.bars{display:grid; gap:var(--s-3);}
+.barrow{
+  display:grid;
+  grid-template-columns:200px 1fr 96px;
+  align-items:center;
+  gap:var(--s-4);
+}
+.barrow .bl{
+  font-family:var(--font-head);
+  font-size:.8rem;
+  color:var(--ink-soft);
+}
+.barrow.ship .bl{color:var(--ink); font-weight:600;}
+.track{
+  height:14px;
+  background:var(--line-soft);
+  border-radius:3px;
+  overflow:hidden;
+  position:relative;
+}
+.track .fill{
+  height:100%;
+  background:var(--ink-mute);
+  border-radius:3px;
+}
+.barrow.ship .track .fill{background:var(--accent);}
+.barrow.faint .track .fill{background:#c2cad2;}
+.barrow .bv{
+  font-family:var(--font-head);
+  font-size:.78rem;
+  color:var(--ink-soft);
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+}
+.barrow.ship .bv{color:var(--accent-deep); font-weight:700;}
+.ablation .axis{
+  font-size:.72rem;
+  color:var(--ink-mute);
+  margin-top:var(--s-5);
+  padding-top:var(--s-3);
+  border-top:1px solid var(--line-soft);
+  line-height:1.5;
+}
+
+/* learnings as numbered statements */
+.learn{display:grid; gap:var(--s-6);}
+.learn .item{
+  display:grid;
+  grid-template-columns:42px 1fr;
+  gap:var(--s-5);
+  align-items:start;
+}
+.learn .item .ln{
+  font-family:var(--font-head);
+  font-weight:700;
+  font-size:var(--step-2);
+  color:var(--accent);
+  line-height:1;
+  letter-spacing:-.02em;
+}
+.learn .item .lt{
+  font-family:var(--font-head);
+  font-weight:600;
+  color:var(--ink);
+  display:block;
+  margin-bottom:var(--s-1);
+  font-size:1.02rem;
+}
+
+footer.brief-foot{
+  margin-top:var(--s-12);
+  padding-top:var(--s-5);
+  border-top:1px solid var(--line);
+  font-size:.82rem;
+  color:var(--ink-mute);
+}
+
+a{color:var(--accent-deep);}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:2px;}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important; transition-duration:.01ms!important; scroll-behavior:auto!important;}
+}
+
+/* ---------- responsive ---------- */
+@media (max-width:920px){
+  .shell{grid-template-columns:1fr;}
+  .rail{
+    position:static;
+    height:auto;
+    border-right:0;
+    border-bottom:1px solid var(--line);
+    padding:var(--s-10) var(--s-6) var(--s-8);
+  }
+  .content{padding:var(--s-10) var(--s-6) var(--s-12);}
+  .toc{display:none;}
+}
+@media (max-width:680px){
+  .pipe{flex-direction:column; gap:var(--s-2);}
+  .stage{padding:0;}
+  .families{flex:none;}
+  .arrow{transform:rotate(90deg); margin:0 auto; flex-basis:auto; align-self:center;}
+  .barrow{grid-template-columns:1fr; gap:var(--s-1);}
+  .barrow .bv{text-align:left;}
+  .track{order:3;}
+  table.metrics{font-size:.82rem;}
+  table.metrics thead th, table.metrics tbody td{padding:var(--s-3);}
+  .content{padding:var(--s-8) var(--s-5) var(--s-10);}
+}
+
+/* ---------- print ---------- */
+@media print{
+  @page{margin:16mm 14mm;}
+  body{color:#111; font-size:10.5pt; line-height:1.5;}
+  .shell{display:block; max-width:none;}
+  .rail{
+    position:static; height:auto; overflow:visible;
+    border-right:0; border-bottom:1.5pt solid #111;
+    background:transparent;
+    padding:0 0 12pt; margin-bottom:16pt;
+    display:grid; grid-template-columns:1fr 1fr; gap:14pt 28pt; align-items:start;
+  }
+  .rail .mark{grid-column:1 / -1;}
+  .rail h1{font-size:19pt; margin:4pt 0; grid-column:1 / -1;}
+  .rail .sub{grid-column:1 / -1; margin-bottom:4pt;}
+  .rail-block{break-inside:avoid; margin-bottom:0;}
+  .rail-block--toc{display:none;}
+  .toc{display:none;}
+  .meta-line .v{font-size:.82rem;}
+  .content{padding:0; max-width:none;}
+  .figure, .ablation, .metrics-wrap, .framing{
+    box-shadow:none; break-inside:avoid; background:transparent;
+  }
+  .framing{border:1px solid #bbb;}
+  section{break-inside:avoid; margin-bottom:14pt;}
+  .sec-head{break-after:avoid;}
+  .fam.shipped, .barrow.ship .track .fill, .fam.shipped .tag{
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  table.metrics tbody tr:nth-child(even){background:transparent;}
+  .learn .item{break-inside:avoid;}
+  a{color:#111; text-decoration:none;}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- LEFT META RAIL -->
+  <aside class="rail">
+    <div class="mark">Project Brief <span class="dot">/</span> ML</div>
+    <h1>Bringing On-Creative Text into Instagram Ads Ranking</h1>
+    <p class="sub">A production, calibration-positive feature family that reads the text printed on video ad creatives and feeds it to the last-stage CTR ranker.</p>
+
+    <div class="rail-block">
+      <div class="label">Role</div>
+      <div class="meta-line"><span class="k">Position</span><span class="v">Initiative lead</span></div>
+      <div class="meta-line"><span class="k">Paper</span><span class="v">First author</span></div>
+      <div class="meta-line"><span class="k">Org</span><span class="v">IG Ads Ranking</span></div>
+    </div>
+
+    <div class="rail-block">
+      <div class="label">Ownership</div>
+      <div class="meta-line"><span class="k">Feature engineering</span><span class="v">Me</span></div>
+      <div class="meta-line"><span class="k">RQ-VAE quantization</span><span class="v">Me</span></div>
+      <div class="meta-line"><span class="k">Ablations + A/B</span><span class="v">Me</span></div>
+      <div class="meta-line"><span class="k">Cross-team orchestration</span><span class="v">Me</span></div>
+    </div>
+
+    <div class="rail-block">
+      <div class="label">Partner teams (upstream)</div>
+      <div class="meta-line"><span class="k">Ads-OCR model</span><span class="v">OCR team</span></div>
+      <div class="meta-line"><span class="k">Frame extraction</span><span class="v">Video infra</span></div>
+      <div class="meta-line"><span class="k">TextRay embedding</span><span class="v">Text models</span></div>
+    </div>
+
+    <div class="rail-block">
+      <div class="label">Headline results (Normalized Entropy)</div>
+      <div class="figs">
+        <div class="fig"><div class="n">&minus;0.06 to &minus;0.08%</div><div class="d">Online NE, 80% traffic A/B (p &lt; 0.01)</div></div>
+        <div class="fig"><div class="n">&asymp; &minus;0.12%</div><div class="d">Offline NE on short-form video</div></div>
+        <div class="fig"><div class="n">3 bytes</div><div class="d">Per-ad code, 500&times; smaller than dense</div></div>
+      </div>
+    </div>
+
+    <div class="rail-block rail-block--toc">
+      <div class="label">Contents</div>
+      <nav class="toc">
+        <a href="#s1"><span class="num">01</span> Problem Statement</a>
+        <a href="#s2"><span class="num">02</span> Solutions Explored</a>
+        <a href="#s3"><span class="num">03</span> Technical Considerations</a>
+        <a href="#s4"><span class="num">04</span> Measuring Success</a>
+        <a href="#s5"><span class="num">05</span> Key Learnings</a>
+      </nav>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <main class="content">
+    <p class="framing">Optional pre-read for the Project Deep Dive; bullet form by design, happy to go deeper live.</p>
+
+    <!-- 1 -->
+    <section id="s1">
+      <div class="sec-head"><span class="idx">01</span><h2>Problem Statement</h2></div>
+      <ul class="points">
+        <li><span class="lead">Audience and customer.</span> Advertisers (more relevant delivery per ad dollar), end users (better-matched ads), and internally the Instagram Ads Ranking org, since the ranking model is shared infrastructure and a new feature family there is an org-level asset.</li>
+        <li><span class="lead">Why it is critical.</span> Short-form video ads are extremely text-rich: offers, calls-to-action, prices, brand and product mentions overlaid on the creative. The ranker consumed video ads mostly through user-side signals, engagement sequences, and dense visual embeddings; the text on the creative itself was largely absent. NE improvements on this last-stage ranker compound to large impact at Instagram scale.</li>
+        <li><span class="lead">Insight that prompted the work.</span> A legacy signal touched this, but it ran an ancient OCR model on the static thumbnail only, and even that limited version was a high-importance feature. That told us the modality was valuable and under-exploited. A later clean single-thumbnail experiment confirmed coverage, not modeling, was the bottleneck.</li>
+        <li><span class="lead">My role.</span> I led the overall initiative from the IG Ads Ranking team and am first author on the resulting RecSys paper. Shipping a ranking feature at this scale is inherently cross-team: three partner teams built the upstream models (an OCR team for recognition, a video infra team for frame extraction, a text-models team for the TextRay embedding). I set the thesis, the requirements, and the quality bar for each partner component, and I personally owned the ranking-side work: feature engineering into the ranker (TF-IDF, the RQ-VAE quantization, and integration), the ablation methodology, the online experimentation, and the write-up.</li>
+        <li><span class="lead">What was uniquely challenging.</span>
+          <ul class="sub">
+            <li>OCR had to run at billion-ad daily throughput, which rules out general-purpose vision-language models on cost.</li>
+            <li>These are videos, so you cannot OCR every frame; frame selection matters.</li>
+            <li>The extracted text had to land in the ranker's existing sparse categorical embedding tables, not as a dense feature needing its own tower and serving budget.</li>
+            <li>It required orchestrating four teams toward one shared metric.</li>
+          </ul>
+        </li>
+        <li><span class="lead">Intended outcome.</span> A production, NE-positive feature family, and a reusable recipe for bringing any frame-level perceptual modality into a tabular CTR ranker.</li>
+      </ul>
+    </section>
+
+    <!-- 2 -->
+    <section id="s2">
+      <div class="sec-head"><span class="idx">02</span><h2>Solutions Explored</h2></div>
+      <ul class="points">
+        <li><span class="lead">Baseline.</span> The production short-form video CTR ranker, including the legacy OCR signal, so every gain had to be incremental over an existing feature.</li>
+        <li><span class="lead">Three design decisions, each with a real alternative.</span>
+          <ul class="sub">
+            <li><strong>OCR model.</strong> A vision-language model reading the creative directly is highest quality, but its throughput cannot serve billions of ads a day at acceptable cost. We went with a specialized OCR model (Ads-OCR, built by the OCR team to my requirement of near-VLM quality at serving-viable throughput): about 93% of the VLM's word-level F1 at roughly 80&times; the throughput. Decision rule: quality-per-throughput.</li>
+            <li><strong>Frame extraction.</strong> Uniform sampling either misses text-rich frames or wastes compute on near-duplicates. The video infra team built a smart extractor that reuses a production frame-CTR scoring model (so the quality score is essentially free), plus SSIM dedup and adaptive sampling. It recovers more OCR text at half the frame budget.</li>
+            <li><strong>Feature representation (my core work).</strong> Three families, evaluated against each other: TF-IDF tokens (exact keywords), the TextRay dense sentence embedding (contextual meaning, from the text-models team), and a 3-byte RQ-VAE semantic-ID code I derived by quantizing that embedding so it fits the ranker's categorical tables.</li>
+          </ul>
+        </li>
+        <li><span class="lead">Evaluation framework.</span> Tiered: OCR word-F1, then a representation ablation on 200,000 ads with four independent lenses (LLM-as-judge, plus judge-free deterministic anchors and a human inter-rater check), then offline ranker NE per feature, then an online A/B, all gated on per-ad serving cost.</li>
+        <li><span class="lead">How I converged, and what was contentious.</span> The result inverted the expected serving design. The 3-byte codes recovered nearly all of the dense embedding's ranking value, and adding the dense embedding on top of the bundle was within run-to-run noise at 500&times; the storage. So we dropped the dense tower and launched TF-IDF plus the codes. Sign-off was straightforward; the proposal looked like modest ROI going in, and the notable surprise was the magnitude, concentrated on short-form video surfaces.</li>
+      </ul>
+
+      <!-- SIGNATURE DEVICE: pipeline diagram -->
+      <div class="figure" role="img" aria-label="Pipeline: video into frame sampling into OCR into three feature families into the ranker into the auction.">
+        <div class="cap">Feature pipeline <span>// video to auction</span></div>
+        <div class="pipe">
+          <div class="stage">
+            <div class="box"><span class="t">Video ad</span><span class="s">short-form creative</span></div>
+            <span class="who">&nbsp;</span>
+          </div>
+          <div class="arrow" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="stage">
+            <div class="box"><span class="t">Frame sampling</span><span class="s">CTR score, SSIM dedup</span></div>
+            <span class="who">Video infra</span>
+          </div>
+          <div class="arrow" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="stage">
+            <div class="box"><span class="t">Ads-OCR</span><span class="s">detect, crop, recognize</span></div>
+            <span class="who">OCR team</span>
+          </div>
+          <div class="arrow" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="stage wide">
+            <div class="fambox">
+              <div class="fam-label">Three feature families</div>
+              <div class="famlist">
+                <div class="pill"><span class="dot"></span><span class="nm">TF-IDF tokens</span><span class="meta">shipped</span></div>
+                <div class="pill"><span class="dot"></span><span class="nm">RQ-VAE 3-byte code</span><span class="meta">shipped</span></div>
+                <div class="pill drop"><span class="dot"></span><span class="nm">TextRay dense vector</span><span class="meta">dropped</span></div>
+              </div>
+            </div>
+            <span class="who">Feature engineering</span>
+          </div>
+          <div class="arrow" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="stage">
+            <div class="box"><span class="t">CTR ranker</span><span class="s">ad-side tower</span></div>
+            <span class="who">IG Ads Ranking</span>
+          </div>
+          <div class="arrow" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="stage">
+            <div class="box"><span class="t">Auction</span><span class="s">ad delivery</span></div>
+            <span class="who">&nbsp;</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section id="s3">
+      <div class="sec-head"><span class="idx">03</span><h2>Technical Considerations</h2></div>
+      <ul class="points">
+        <li><span class="lead">Quality vs throughput.</span> Specialized OCR at roughly 80&times; a VLM's throughput is what makes per-frame perception affordable at billion-ad daily scale.</li>
+        <li><span class="lead">Coverage vs compute (video).</span> Smart frame selection recovers more OCR text at half the per-video frame budget.</li>
+        <li><span class="lead">Representation cost vs quality.</span> 3-byte RQ-VAE codes versus a 1536-byte dense vector. The codes integrate with the ranker's existing categorical embedding tables, adding no new dense matmul at serving time.</li>
+        <li><span class="lead">Integration and build-vs-reuse.</span> All OCR features are added to the ad-side tower; crosses with user and context features are handled by the ranker's existing interaction layers (FM-style crosses, DCN, cross-attention), so integration cost stayed low and feature value was measurable through the standard ablation pipeline.</li>
+        <li><span class="lead">Robustness.</span> OCR tokens are confidence-filtered (&ge; 0.6) upstream so noise never reaches the ranker; missing features degrade cleanly.</li>
+        <li><span class="lead">Architecture notes.</span> Ads-OCR: a three-stage detect-crop-recognize pipeline (ConvNeXt detector with rotated boxes, fixed-size cropper, TrOCR for Latin and LSTM for non-Latin) spanning 41 languages. RQ-VAE: three residual codebooks of 256 entries, trained with reconstruction, VQ commitment, and sparsity losses, with care taken around a codebook-utilization pitfall under the straight-through estimator.</li>
+      </ul>
+    </section>
+
+    <!-- 4 -->
+    <section id="s4">
+      <div class="sec-head"><span class="idx">04</span><h2>Measuring Success</h2></div>
+      <p>All ranking results are reported in relative Normalized Entropy (NE), the calibration-sensitive log-loss metric for CTR ranking. Lower is better.</p>
+
+      <div class="metrics-wrap">
+        <table class="metrics">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Baseline</th>
+              <th>Target</th>
+              <th class="num">Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mname">Offline relative NE (all surfaces)</td>
+              <td class="base">0%</td>
+              <td class="target">Clear the launch-grade band (&gt; 0.02%)</td>
+              <td class="num result">&minus;0.055 to &minus;0.06%</td>
+            </tr>
+            <tr>
+              <td class="mname">Offline NE, short-form video (Reels-class)</td>
+              <td class="base">0%</td>
+              <td class="target">Concentrate where text is densest</td>
+              <td class="num result">&asymp; &minus;0.12%</td>
+            </tr>
+            <tr>
+              <td class="mname">Online NE (80% traffic, multi-week A/B)</td>
+              <td class="base">0%</td>
+              <td class="target">Launch-grade, significant</td>
+              <td class="num result">&minus;0.06 to &minus;0.08%<br><span class="fs">(p &lt; 0.01)</span></td>
+            </tr>
+            <tr>
+              <td class="mname">OCR word-F1 vs VLM</td>
+              <td class="base">n/a</td>
+              <td class="target">Near-VLM quality</td>
+              <td class="num result">93% of VLM F1<br><span class="fs">(~80&times; throughput)</span></td>
+            </tr>
+            <tr>
+              <td class="mname">Per-ad storage (codes vs dense)</td>
+              <td class="base">1536 B<br><span class="fs">(dense vector)</span></td>
+              <td class="target">Minimize serving cost</td>
+              <td class="num result">3 B<br><span class="fs">(500&times; smaller)</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="tnote">All NE figures are relative changes against the production baseline; negative is an improvement.</p>
+
+      <ul class="points">
+        <li><span class="lead">How success was determined.</span> Offline NE on a retrained treatment arm (training config, data window, and architecture held identical to baseline) over a ~120-billion-example window, stabilizing into a tight band after about 30 billion examples. Online, a multi-week A/B at 80% traffic, evaluated with a one-sided z-test and cluster-robust standard errors at the ad-id level (impressions of the same ad are not independent). The feature is in production.</li>
+        <li><span class="lead">How data informed iteration.</span> Per-feature offline ablation guided the launch. The four-lens representation ablation triangulated which family carried the most signal. A single-thumbnail experiment (NE only 0.01 to 0.015%) showed the bottleneck was modality coverage, not feature engineering, and justified investing in per-frame video OCR.</li>
+      </ul>
+
+      <!-- SECONDARY DATAVIZ: per-feature NE ablation -->
+      <div class="ablation">
+        <div class="cap">Per-feature offline ablation <span style="color:var(--accent-deep)">// relative NE, lower is better</span></div>
+        <div class="bars">
+          <div class="barrow faint">
+            <div class="bl">Single thumbnail only</div>
+            <div class="track"><div class="fill" style="width:21%"></div></div>
+            <div class="bv">0.01 to 0.015%</div>
+          </div>
+          <div class="barrow">
+            <div class="bl">TF-IDF alone</div>
+            <div class="track"><div class="fill" style="width:29%"></div></div>
+            <div class="bv">0.015 to 0.02%</div>
+          </div>
+          <div class="barrow">
+            <div class="bl">RQ-VAE codes alone</div>
+            <div class="track"><div class="fill" style="width:79%"></div></div>
+            <div class="bv">0.045 to 0.05%</div>
+          </div>
+          <div class="barrow">
+            <div class="bl">Dense embedding (own tower)</div>
+            <div class="track"><div class="fill" style="width:85%"></div></div>
+            <div class="bv">0.05 to 0.053%</div>
+          </div>
+          <div class="barrow ship">
+            <div class="bl">Bundle: TF-IDF + codes</div>
+            <div class="track"><div class="fill" style="width:97%"></div></div>
+            <div class="bv">0.055 to 0.06%</div>
+          </div>
+          <div class="barrow faint">
+            <div class="bl">Dense on top of bundle</div>
+            <div class="track"><div class="fill" style="width:8%"></div></div>
+            <div class="bv">&le; 0.005% (noise)</div>
+          </div>
+        </div>
+        <div class="axis">The bundle of TF-IDF plus 3-byte codes captured essentially all available ranking value. Adding the dense embedding on top was within run-to-run noise at 500&times; the storage, which is why the dense tower was dropped.</div>
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section id="s5">
+      <div class="sec-head"><span class="idx">05</span><h2>Key Learnings</h2></div>
+      <div class="learn">
+        <div class="item">
+          <span class="ln">1</span>
+          <div>
+            <span class="lt">The high-yield part of a rich modality can be tiny and categorical.</span>
+            I expected the dense embedding to dominate; the 3-byte codes recovered nearly all of it at 500&times; less storage, and the dense tower was within noise. I now default to quantizing to a categorical feature first and making the dense version earn its serving cost before shipping it.
+          </div>
+        </div>
+        <div class="item">
+          <span class="ln">2</span>
+          <div>
+            <span class="lt">Coverage beats cleverness when the modality is under-sampled.</span>
+            The single-thumbnail result (0.01 to 0.015% NE) versus full-video frames (0.06%) was a large swing from capturing more of the signal, not better modeling. It reset how I scope new-signal work: secure coverage first.
+          </div>
+        </div>
+        <div class="item">
+          <span class="ln">3</span>
+          <div>
+            <span class="lt">Leading a four-team initiative is a requirements-and-metric problem.</span>
+            The orchestration mattered more than any single model. Crisp, falsifiable requirements and one shared metric (NE) let each partner team optimize independently while I owned the integration and the outcome.
+          </div>
+        </div>
+      </div>
+
+      <footer class="brief-foot">
+        Bringing On-Creative Text into Instagram Ads Ranking &middot; Project brief &middot; Results reported in relative Normalized Entropy.
+      </footer>
+    </section>
+
+  </main>
+</div>
+</body>
+</html>
